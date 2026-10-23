@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Asignaciones</title>
+<style>
+:root{--bg:#FCEFE2;--sur:#FFFAF5;--ink:#2B1810;--mut:#7A5A47;--line:#E7CDB5;--acc:#C2410C;--on:#FFFFFF;--hd:#1F2A44;--hdi:#FFFFFF;--bub:#FFE2C6;--bubi:#3A1F0E;--warn:#B42318;--sel:#FFE8D5;color-scheme:light}
+:root[data-theme="dark"]{--bg:#17110D;--sur:#211812;--ink:#F5E9DE;--mut:#B79C88;--line:#3A2A1F;--acc:#FB923C;--on:#1A0F08;--hd:#101626;--hdi:#FFFFFF;--bub:#5A3216;--bubi:#FFE9D6;--warn:#F87171;--sel:#3A2314;color-scheme:dark}
+html,body{height:100%;margin:0}
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:Roboto,"Segoe UI",system-ui,sans-serif;font-size:16px;line-height:1.4;-webkit-tap-highlight-color:transparent}
+#app{height:100%;display:flex;flex-direction:column;max-width:520px;margin:0 auto;background:var(--sur)}
+header{background:var(--hd);color:var(--hdi);display:flex;align-items:center;gap:2px;padding:4px 6px 4px 16px;min-height:56px}
+header h1{flex:1;font-size:20px;margin:0;font-weight:700}
+header button{background:none;border:0;color:var(--hdi);width:44px;height:44px;min-height:0;padding:0;display:grid;place-items:center}
+header button.on{background:rgba(255,255,255,.18)}
+header svg{width:24px;height:24px}
+header [data-a="back"]{font-size:24px;margin-left:-12px;margin-right:4px}
+main{flex:1;overflow:auto;padding:14px 16px 20px}
+nav{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);background:var(--sur)}
+nav button{border:0;border-top:3px solid transparent;background:none;color:var(--mut);font-size:12px;padding:12px 0}
+nav button.on{color:var(--acc);font-weight:700;border-top-color:var(--acc)}
+button,input,textarea,select{border-radius:0;font:inherit}
+button{color:var(--ink);background:var(--sur);border:1px solid var(--line);padding:10px 12px;min-height:44px;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+input,textarea,select{color:var(--ink);background:var(--sur);border:1px solid var(--line);padding:10px;width:100%}
+.pri{background:var(--acc);color:var(--on);border-color:var(--acc);font-weight:700;width:100%}
+.dng{color:var(--warn)}
+h2{font-size:15px;margin:0 0 10px}
+label{display:block;font-size:13px;color:var(--mut);margin-bottom:8px}
+label input,label textarea,label select{margin-top:4px;color:var(--ink);font-size:16px}
+.info{background:var(--sel);border-left:4px solid var(--acc);padding:10px 12px;margin-bottom:14px;font-size:14px}
+.empty{color:var(--mut);margin:12px 0}
+.warn{color:var(--warn);font-size:14px;margin:8px 0}
+.cnt{color:var(--mut);font-size:13px;margin:4px 0 8px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);margin-bottom:14px}
+.seg3{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line)}
+.seg button,.seg3 button{border:0;background:transparent}
+.seg .on,.seg3 .on{background:var(--acc);color:var(--on);font-weight:700}
+.bub{background:var(--bub);color:var(--bubi);border-left:4px solid var(--acc);padding:14px 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.hd{font-weight:700;font-size:17px}
+.slot small{display:block;font-weight:700;font-size:13px;opacity:.75}
+.nms{display:flex;flex-wrap:wrap;gap:0 8px}
+.nm{background:transparent;border:0;border-bottom:1px dashed currentColor;color:inherit;font-size:17px;min-height:36px;padding:4px 0;text-align:left}
+.nm.void{color:var(--warn);font-style:italic}
+.cl{white-space:pre-line}
+.row{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;margin:12px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-height:36px;padding:6px 12px;font-size:13px}
+.chip.on{background:var(--acc);border-color:var(--acc);color:var(--on);font-weight:700}
+.card{border:1px solid var(--line);padding:14px;margin-bottom:14px}
+.card .pri{margin-top:12px}
+.ph{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;border-bottom:1px solid var(--line);background:none;text-align:left}
+.ph span{color:var(--mut);font-size:13px}
+.pp.off .ph b{color:var(--mut);text-decoration:line-through}
+.pb{padding:10px 0 4px}
+.r2{display:grid;grid-template-columns:1fr 1.3fr auto;gap:8px;align-items:end;margin-top:8px}
+.r2 label{margin:0}
+.r1{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}
+.he{border-bottom:1px solid var(--line);padding:10px 0}
+.he b{display:block;margin-bottom:4px}
+.he div{font-size:14px;color:var(--mut)}
+.line{display:flex;justify-content:space-between;align-items:center}
+.sw{position:relative;width:52px;height:32px;min-height:0;padding:0;background:var(--bg);border:2px solid var(--line)}
+.sw i{position:absolute;top:2px;left:2px;width:24px;height:24px;background:var(--mut)}
+.sw.on{background:var(--acc);border-color:var(--acc)}
+.sw.on i{left:22px;background:var(--on)}
+.about{color:var(--mut);font-size:14px;line-height:1.7}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:24px;z-index:5}
+.ov.bt{align-items:flex-end;padding:0}
+.dlg{background:var(--sur);border:2px solid var(--acc);padding:18px;max-width:340px;width:100%}
+.dlg p{margin:0 0 4px}
+.sheet{background:var(--sur);width:100%;max-width:520px;max-height:75%;overflow:auto;padding:16px;border-top:3px solid var(--acc)}
+.sheet button{display:block;width:100%;text-align:left;margin-top:8px}
+.sheet textarea{margin-top:8px}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--ink);color:var(--sur);padding:10px 16px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9;max-width:90%;text-align:center}
+.toast.on{opacity:1}
+.wel{height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px;gap:18px;text-align:center}
+.wel svg{width:96px;height:96px}
+.wel h1{margin:0;font-size:28px}
+.wel input,.wel .pri{max-width:320px}
+.wel input{text-align:center}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<script>
+const $ = s => document.querySelector(s);
+const A = window.Android;
+const clone = o => JSON.parse(JSON.stringify(o));
+const K = 'asignaciones_app_v1';
+const DEF = {
+  roles: [
+    {id:'pre', name:'Presidente', n:1, d:'all'},
+    {id:'mic', name:'Microfonista', n:2, d:'all'},
+    {id:'pla', name:'Plataforma', n:1, d:'all'},
+    {id:'ext', name:'Acomodador auditorio', n:2, d:'all'},
+    {id:'int', name:'Acomodador interior', n:2, d:'all'},
+    {id:'son', name:'Sonido', n:1, d:'all'},
+    {id:'lib', name:'Lector del libro', n:1, d:'jue'},
+    {id:'ata', name:'Lector de Atalaya', n:1, d:'sab'}
+  ],
+  people: [], hist: [], last: {}, any: {},
+  hdr: 'Asignaciones para hoy',
+  cls: 'Si alguien no puede av\u00edseme y yo me encargo de buscar a otro, gracias \u{1F64B}\u200D\u2642\uFE0F',
+  user: '', theme: 'sys', snd: true, rem: []
+};
+let S;
+try { S = JSON.parse(localStorage.getItem(K)); } catch (e) { S = null; }
+S = Object.assign(clone(DEF), S && typeof S === 'object' ? S : {});
+if (!Array.isArray(S.rem)) S.rem = [];
+const save = () => { try { localStorage.setItem(K, JSON.stringify(S)); } catch (e) {} };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const rn = id => (S.roles.find(r => r.id === id) || {name:'?'}).name;
+const pn = id => (S.people.find(p => p.id === id) || {name:'?'}).name;
+const DL = {jue:'Jueves', sab:'Sábado'};
+const DN = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const TT = {msg:'Mensaje', ppl:'Personas', rol:'Roles', rem:'Avisos', his:'Historial'};
+const INFO = {
+  msg:'Elegí el día, generá el mensaje y tocá un nombre para cambiarlo. Los nombres cuentan como usados cuando tocás “Marcar como enviado”.',
+  ppl:'Agregá una persona por línea y marcá qué roles puede cumplir. Tocá un nombre para editar sus roles o marcarlo como ausente.',
+  rol:'Cada rol define cuántas personas lleva y en qué día se usa. También podés editar el encabezado y la conclusión del mensaje.',
+  rem:'Elegí los días y la hora en que querés recibir el aviso. Si no llegan, permití las notificaciones y quitá la restricción de batería para esta app.',
+  his:'Acá quedan los mensajes que marcaste como enviados.',
+  cfg:'Elegí el aspecto, activá o desactivá los sonidos táctiles y guardá una copia de seguridad de tus datos en un archivo .txt.'
+};
+const ICON_I = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.01" stroke="currentColor" stroke-width="2.4" fill="none"/></svg>';
+const ICON_G = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>';
+const LOGO = '<svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" fill="var(--acc)"/><path fill="#fff" d="M22 24h12v12H22zM42 28h32v4H42zM22 42h12v12H22zM42 46h32v4H42zM22 60h12v12H22zM42 64h20v4H42z"/></svg>';
+const VER = (() => { try { return A ? A.version() : '1.0.0'; } catch (e) { return '1.0.0'; } })();
+
+let tab = 'msg', cfg = false, info = false, draft = null, open = null, sheet = null, dlg = null, nnv = '';
+let day = (() => { const g = new Date().getDay(); return (g === 0 || g >= 5) ? 'sab' : 'jue'; })();
+const add = new Set();
+
+/* ---------- tema ---------- */
+const mq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : {matches:false};
+function systemDark() { try { if (A) return A.isDark(); } catch (e) {} return mq.matches; }
+function applyTheme() {
+  const eff = S.theme === 'sys' ? (systemDark() ? 'dark' : 'light') : S.theme;
+  const r = document.documentElement;
+  r.setAttribute('data-theme', eff);
+  try {
+    if (A) {
+      const cs = getComputedStyle(r);
+      A.setBars(cs.getPropertyValue('--hd').trim(), cs.getPropertyValue('--sur').trim(), eff === 'light');
+    }
+  } catch (e) {}
+}
+if (mq.addEventListener) mq.addEventListener('change', applyTheme);
+
+/* ---------- sonidos táctiles ---------- */
+let ac;
+function tone(f1, f2, d, v) {
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === 'suspended') ac.resume();
+    const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+    o.frequency.setValueAtTime(f1, t);
+    o.frequency.exponentialRampToValueAtTime(f2, t + d);
+    g.gain.setValueAtTime(v, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g); g.connect(ac.destination);
+    o.start(t); o.stop(t + d);
+  } catch (e) {}
+}
+function tap(kind) {
+  if (!S.snd) return;
+  if (kind === 'ok') tone(900, 1500, .14, .08); else tone(1400, 700, .04, .08);
+  try { if (A) A.haptic(kind === 'ok' ? 1 : 0); } catch (e) {}
+}
+document.addEventListener('pointerdown', e => {
+  if (e.target.closest && e.target.closest('button,select,input,textarea,[data-a]')) tap();
+}, true);
+
+let tt;
+function toast(m) {
+  const t = $('#toast');
+  t.textContent = m; t.classList.add('on');
+  if (m.charAt(0) === '\u2713') tap('ok');
+  clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 3200);
+}
+
+/* ---------- lógica de asignaciones ---------- */
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function elig(r, used) {
+  return shuffle(S.people)
+    .filter(p => !p.off && p.r.includes(r.id) && !used.has(p.id))
+    .sort((a, b) => (S.last[a.id + r.id] || 0) - (S.last[b.id + r.id] || 0) || (S.any[a.id] || 0) - (S.any[b.id] || 0));
+}
+function gen() {
+  const rs = S.roles.filter(r => r.d === 'all' || r.d === day);
+  const pool = r => S.people.filter(p => !p.off && p.r.includes(r.id)).length;
+  const used = new Set(), res = {};
+  [...rs].sort((a, b) => pool(a) - pool(b)).forEach(r => {
+    res[r.id] = [];
+    for (let i = 0; i < r.n; i++) {
+      const c = elig(r, used)[0];
+      if (c) used.add(c.id);
+      res[r.id].push(c ? c.id : null);
+    }
+  });
+  draft = rs.flatMap(r => res[r.id].map(p => ({r:r.id, p})));
+}
+function groups() {
+  const g = [];
+  draft.forEach((s, i) => { let x = g.find(y => y.r === s.r); if (!x) { x = {r:s.r, ps:[]}; g.push(x); } x.ps.push({p:s.p, i}); });
+  return g;
+}
+const txt = () => (S.hdr ? S.hdr + '\n\n' : '') + groups().map(g => rn(g.r) + '\n' + g.ps.map(x => x.p ? pn(x.p) : '(sin asignar)').join(', ')).join('\n\n') + (S.cls ? '\n\n' + S.cls : '');
+const chip = (r, on, a, id) => `<button class="chip ${on ? 'on' : ''}" data-a="${a}" data-r="${r.id}" data-id="${id || ''}">${esc(r.name)}</button>`;
+
+/* ---------- recordatorios ---------- */
+function syncRem() {
+  try { if (A) A.setReminders(JSON.stringify(S.rem.filter(r => r.days.length && r.time)), S.user || ''); } catch (e) {}
+}
+
+/* ---------- vistas ---------- */
+function welcome() {
+  return `<div class="wel">${LOGO}<h1>Asignaciones</h1><input id="un" placeholder="Nombre de usuario" autocomplete="off" aria-label="Nombre de usuario"><button class="pri" data-a="login">Iniciar sesión</button></div>`;
+}
+function vMsg() {
+  let h = '<div class="seg">' + ['jue','sab'].map(d => `<button class="${d === day ? 'on' : ''}" data-a="day" data-v="${d}">${DL[d]}</button>`).join('') + '</div>';
+  if (!S.people.length) return h + '<p class="empty">Sin personas todavía.</p>';
+  if (!draft) return h + '<button class="pri" data-a="gen">Generar mensaje</button>';
+  h += '<div class="bub">' + (S.hdr ? `<div class="hd">${esc(S.hdr)}</div>` : '') + groups().map(g => `<div class="slot"><small>${esc(rn(g.r))}</small><div class="nms">${g.ps.map((x, k) => `<button class="nm ${x.p ? '' : 'void'}" data-a="swap" data-i="${x.i}">${x.p ? esc(pn(x.p)) : 'Sin asignar'}${k < g.ps.length - 1 ? ',' : ''}</button>`).join('')}</div></div>`).join('') + (S.cls ? `<div class="cl">${esc(S.cls)}</div>` : '') + '</div>';
+  if (draft.some(s => !s.p)) h += '<p class="warn">Hay puestos sin asignar.</p>';
+  h += '<div class="row"><button data-a="gen">Regenerar</button><button data-a="copy">Copiar</button><button data-a="wa">WhatsApp</button></div>';
+  h += '<button class="pri" data-a="done">Marcar como enviado</button>';
+  return h;
+}
+function vPpl() {
+  let h = `<div class="card"><textarea id="nn" rows="3" placeholder="Un nombre y apellido por línea" aria-label="Nombres">${esc(nnv)}</textarea><div class="chips" style="margin-top:10px">${S.roles.map(r => chip(r, add.has(r.id), 'addr')).join('')}</div><button class="pri" data-a="addp">Agregar</button></div>`;
+  h += `<p class="cnt">${S.people.length} personas</p>`;
+  h += [...S.people].sort((a, b) => a.name.localeCompare(b.name)).map(p => `<div class="pp ${p.off ? 'off' : ''}"><button class="ph" data-a="opn" data-id="${p.id}"><b>${esc(p.name)}</b><span>${p.off ? 'Ausente' : p.r.length + ' roles'}</span></button>${open === p.id ? `<div class="pb"><div class="chips">${S.roles.map(r => chip(r, p.r.includes(r.id), 'pr', p.id)).join('')}</div><div class="row"><button data-a="off" data-id="${p.id}">${p.off ? 'Marcar disponible' : 'Marcar ausente'}</button><button class="dng" data-a="del" data-id="${p.id}">Eliminar</button></div></div>` : ''}</div>`).join('');
+  return h;
+}
+function vRol() {
+  let h = S.roles.map(r => `<div class="card"><input data-a="rname" data-id="${r.id}" value="${esc(r.name)}" aria-label="Nombre del rol"><div class="r2"><label>Personas<input type="number" min="1" max="9" data-a="rcnt" data-id="${r.id}" value="${r.n}"></label><label>Día<select data-a="rday" data-id="${r.id}"><option value="all" ${r.d === 'all' ? 'selected' : ''}>Todos</option><option value="jue" ${r.d === 'jue' ? 'selected' : ''}>Jueves</option><option value="sab" ${r.d === 'sab' ? 'selected' : ''}>Sábado</option></select></label><button class="dng" data-a="rdel" data-id="${r.id}">Quitar</button></div></div>`).join('');
+  h += '<button data-a="rnew" style="width:100%;margin-bottom:14px">Agregar rol</button>';
+  h += `<div class="card"><h2>Texto del mensaje</h2><label>Encabezado<input data-a="hdr" value="${esc(S.hdr)}"></label><label>Conclusión<textarea rows="3" data-a="cls">${esc(S.cls)}</textarea></label></div>`;
+  return h;
+}
+function vRem() {
+  let h = S.rem.length ? '' : '<p class="empty">Sin recordatorios.</p>';
+  h += S.rem.map(r => `<div class="card"><div class="chips">${DN.map((n, i) => `<button class="chip ${r.days.includes(i + 1) ? 'on' : ''}" data-a="rd" data-id="${r.id}" data-v="${i + 1}">${n}</button>`).join('')}</div><div class="r1"><input type="time" data-a="rtm" data-id="${r.id}" value="${esc(r.time)}" aria-label="Hora"><button class="dng" data-a="rx" data-id="${r.id}">Quitar</button></div>${(!r.days.length || !r.time) ? '<p class="warn">Falta elegir día y hora.</p>' : ''}</div>`).join('');
+  h += '<button class="pri" data-a="radd">Agregar recordatorio</button>';
+  if (A) h += '<button data-a="batt" style="width:100%;margin-top:10px">Ajustes de batería</button>';
+  return h;
+}
+function vHis() {
+  if (!S.hist.length) return '<p class="empty">Sin mensajes enviados.</p>';
+  return [...S.hist].reverse().map(e => `<div class="he"><b>${DL[e.day] || ''} ${new Date(e.t).toLocaleDateString('es-AR', {day:'numeric', month:'short'})}</b>${e.a.map(x => `<div>${esc(x[0])}: ${esc(x[1])}</div>`).join('')}</div>`).join('');
+}
+function vCfg() {
+  const seg = (k, l) => `<button class="${S.theme === k ? 'on' : ''}" data-a="th" data-v="${k}">${l}</button>`;
+  return `<div class="card"><h2>Apariencia</h2><div class="seg3">${seg('light', 'Claro')}${seg('dark', 'Oscuro')}${seg('sys', 'Predeterminado')}</div></div>
+<div class="card"><div class="line"><span>Sonidos táctiles</span><button class="sw ${S.snd ? 'on' : ''}" role="switch" aria-checked="${S.snd}" aria-label="Sonidos táctiles" data-a="snd"><i></i></button></div></div>
+<div class="card"><label>Nombre de usuario<input data-a="user" value="${esc(S.user)}"></label></div>
+<div class="card"><h2>Copia de seguridad</h2><div class="row"><button data-a="exp">Exportar</button><button data-a="imp">Importar</button></div><input type="file" id="bf" data-a="bf" accept=".txt,text/plain" hidden></div>
+<div class="card about"><div>Versión ${esc(VER)}</div><div>Idea de Esteban Gómez</div><div>Programado con Claude</div></div>`;
+}
+function overlay() {
+  if (dlg) return `<div class="ov" data-a="noop"><div class="dlg"><p>${dlg.k === 'p' ? '¿Seguro que desea borrar este nombre? Esta acción no se puede deshacer.' : '¿Seguro que desea borrar este rol? Esta acción no se puede deshacer.'}</p><div class="row"><button data-a="dno">NO</button><button class="pri" data-a="dyes">SÍ</button></div></div></div>`;
+  if (sheet && sheet.txt !== undefined) return `<div class="ov bt" data-a="close"><div class="sheet" data-a="noop"><h2>Copiá el mensaje</h2><textarea rows="10" readonly>${esc(sheet.txt)}</textarea><button data-a="close">Cerrar</button></div></div>`;
+  if (sheet) return `<div class="ov bt" data-a="close"><div class="sheet" data-a="noop"><h2>Cambiar ${esc(rn(sheet.r))}</h2>${sheet.list.length ? sheet.list.map(p => `<button data-a="pick" data-v="${p.id}">${esc(p.name)}</button>`).join('') : '<p class="empty">No hay otros candidatos disponibles.</p>'}<button data-a="pick" data-v="">Dejar sin asignar</button><button data-a="close">Cerrar</button></div></div>`;
+  return '';
+}
+const NAV = () => `<nav>${Object.keys(TT).map(k => `<button class="${k === tab ? 'on' : ''}" data-a="tab" data-v="${k}">${TT[k]}</button>`).join('')}</nav>`;
+function render() {
+  const app = $('#app');
+  const st = ($('#main') || {}).scrollTop || 0;
+  if (!S.user) { app.innerHTML = welcome(); return; }
+  const view = cfg ? vCfg : {msg:vMsg, ppl:vPpl, rol:vRol, rem:vRem, his:vHis}[tab];
+  app.innerHTML = `<header>${cfg ? '<button data-a="back" aria-label="Volver">←</button>' : ''}<h1>${cfg ? 'Configuración' : TT[tab]}</h1><button data-a="info" class="${info ? 'on' : ''}" aria-label="Información">${ICON_I}</button><button data-a="cfg" class="${cfg ? 'on' : ''}" aria-label="Configuración">${ICON_G}</button></header><main id="main">${info ? `<div class="info">${INFO[cfg ? 'cfg' : tab]}</div>` : ''}${view()}</main>${cfg ? '' : NAV()}${overlay()}`;
+  const m = $('#main'); if (m) m.scrollTop = st;
+}
+
+/* ---------- copiar, exportar, importar ---------- */
+function copyText(s) {
+  const fb = () => {
+    const t = document.createElement('textarea');
+    t.value = s; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(t); t.select(); t.setSelectionRange(0, s.length);
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (x) {}
+    t.remove();
+    if (ok) toast('\u2713 Mensaje copiado'); else { sheet = {txt:s}; render(); }
+  };
+  try { navigator.clipboard.writeText(s).then(() => toast('\u2713 Mensaje copiado'), fb); } catch (x) { fb(); }
+}
+function doExport() {
+  const n = new Date(), p = x => String(x).padStart(2, '0');
+  const name = 'asignaciones-respaldo-' + n.getFullYear() + '-' + p(n.getMonth() + 1) + '-' + p(n.getDate()) + '_' + p(n.getHours()) + '-' + p(n.getMinutes()) + '.txt';
+  const data = JSON.stringify(S);
+  if (A) { A.saveFile(name, data); return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data], {type:'text/plain'})); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('\u2713 Respaldo exportado con éxito');
+}
+function importText(s) {
+  try {
+    const o = JSON.parse(s);
+    if (!o || !Array.isArray(o.roles) || !Array.isArray(o.people) || !Array.isArray(o.hist)) throw 0;
+    const keep = {user:S.user, theme:S.theme, snd:S.snd, rem:S.rem};
+    S = Object.assign(clone(DEF), o);
+    S.user = keep.user; S.theme = keep.theme; S.snd = keep.snd;
+    S.rem = Array.isArray(o.rem) ? o.rem : keep.rem;
+    draft = null; save(); syncRem(); render();
+    toast('\u2713 Respaldo cargado con éxito');
+  } catch (x) { toast('El archivo no es una copia válida'); }
+}
+window.onSaved = ok => toast(ok ? '\u2713 Respaldo exportado con éxito' : 'No se pudo guardar el archivo');
+window.onFilePicked = t => { if (t == null) toast('No se pudo leer el archivo'); else importText(t); };
+window.applyTheme = applyTheme;
+window.onBack = () => {
+  if (dlg || sheet) { dlg = null; sheet = null; render(); return true; }
+  if (info) { info = false; render(); return true; }
+  if (cfg) { cfg = false; render(); return true; }
+  if (tab !== 'msg') { tab = 'msg'; render(); return true; }
+  return false;
+};
+
+/* ---------- eventos ---------- */
+function doLogin() {
+  const n = (($('#un') || {}).value || '').trim();
+  if (!n) { toast('Escribí tu nombre para continuar'); return; }
+  S.user = n; save(); syncRem(); render();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'un') doLogin(); });
+document.addEventListener('input', e => { if (e.target.id === 'nn') nnv = e.target.value; });
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const a = b.dataset.a, v = b.dataset.v, id = b.dataset.id;
+  if (a === 'noop' || /^(INPUT|TEXTAREA|SELECT)$/.test(b.tagName)) return;
+  if (a === 'login') { doLogin(); return; }
+  else if (a === 'tab') { tab = v; info = false; open = null; }
+  else if (a === 'info') info = !info;
+  else if (a === 'cfg') { cfg = !cfg; info = false; }
+  else if (a === 'back') { cfg = false; info = false; }
+  else if (a === 'day') { day = v; draft = null; }
+  else if (a === 'gen') gen();
+  else if (a === 'swap') {
+    const i = +b.dataset.i, s = draft[i];
+    const used = new Set(draft.filter((_, j) => j !== i).map(x => x.p));
+    sheet = {i, r:s.r, list:elig(S.roles.find(r => r.id === s.r), used)};
+  }
+  else if (a === 'pick') { draft[sheet.i].p = v || null; sheet = null; }
+  else if (a === 'close') sheet = null;
+  else if (a === 'copy') {
+    if (A) { try { A.copy(txt()); toast('\u2713 Mensaje copiado'); } catch (x) { copyText(txt()); } } else copyText(txt());
+    return;
+  }
+  else if (a === 'wa') {
+    if (A) A.whatsapp(txt()); else window.open('https://wa.me/?text=' + encodeURIComponent(txt()), '_blank', 'noopener');
+    return;
+  }
+  else if (a === 'done') {
+    const now = Date.now();
+    draft.forEach(s => { if (s.p) { S.last[s.p + s.r] = now; S.any[s.p] = now; } });
+    S.hist.push({t:now, day, a:groups().map(g => [rn(g.r), g.ps.map(x => x.p ? pn(x.p) : 'Sin asignar').join(', ')])});
+    draft = null; save(); toast('\u2713 Registrado en el historial');
+  }
+  else if (a === 'addr') { add.has(b.dataset.r) ? add.delete(b.dataset.r) : add.add(b.dataset.r); }
+  else if (a === 'addp') {
+    const names = nnv.split('\n').map(x => x.trim()).filter(Boolean);
+    let n = 0;
+    names.forEach(x => { if (!S.people.some(p => p.name.toLowerCase() === x.toLowerCase())) { S.people.push({id:uid(), name:x, r:[...add], off:false}); n++; } });
+    nnv = ''; save(); toast(n ? '\u2713 ' + n + ' agregadas' : 'No hay nombres nuevos');
+  }
+  else if (a === 'opn') open = open === id ? null : id;
+  else if (a === 'pr') { const p = S.people.find(x => x.id === id), r = b.dataset.r; p.r = p.r.includes(r) ? p.r.filter(x => x !== r) : [...p.r, r]; save(); }
+  else if (a === 'off') { const p = S.people.find(x => x.id === id); p.off = !p.off; save(); }
+  else if (a === 'del') dlg = {k:'p', id};
+  else if (a === 'rdel') dlg = {k:'r', id};
+  else if (a === 'dno') dlg = null;
+  else if (a === 'dyes') {
+    if (dlg.k === 'p') { S.people = S.people.filter(p => p.id !== dlg.id); open = null; }
+    else { S.roles = S.roles.filter(r => r.id !== dlg.id); S.people.forEach(p => p.r = p.r.filter(x => x !== dlg.id)); }
+    dlg = null; draft = null; save(); toast('\u2713 Eliminado');
+  }
+  else if (a === 'rnew') { S.roles.push({id:uid(), name:'Rol nuevo', n:1, d:'all'}); save(); }
+  else if (a === 'radd') { S.rem.push({id:uid(), days:[], time:''}); save(); }
+  else if (a === 'rd') { const m = S.rem.find(x => x.id === id), d = +v; m.days = m.days.includes(d) ? m.days.filter(x => x !== d) : [...m.days, d]; save(); syncRem(); }
+  else if (a === 'rx') { S.rem = S.rem.filter(x => x.id !== id); save(); syncRem(); }
+  else if (a === 'batt') { try { A.batterySettings(); } catch (x) {} return; }
+  else if (a === 'th') { S.theme = v; save(); applyTheme(); }
+  else if (a === 'snd') { S.snd = !S.snd; save(); if (S.snd) tap('ok'); }
+  else if (a === 'exp') { doExport(); return; }
+  else if (a === 'imp') { if (A) A.pickFile(); else $('#bf').click(); return; }
+  render();
+});
+document.addEventListener('change', e => {
+  const t = e.target, a = t.dataset.a; if (!a) return;
+  if (a === 'bf') { const f = t.files && t.files[0]; t.value = ''; if (f) f.text().then(importText, () => toast('No se pudo leer el archivo')); return; }
+  const r = S.roles.find(x => x.id === t.dataset.id);
+  if (a === 'rname' && r) r.name = t.value.trim() || r.name;
+  else if (a === 'rcnt' && r) { r.n = Math.max(1, Math.min(9, +t.value || 1)); draft = null; }
+  else if (a === 'rday' && r) { r.d = t.value; draft = null; }
+  else if (a === 'hdr') S.hdr = t.value.trim();
+  else if (a === 'cls') S.cls = t.value.trim();
+  else if (a === 'rtm') { const m = S.rem.find(x => x.id === t.dataset.id); if (m) { m.time = t.value; save(); syncRem(); render(); } return; }
+  else if (a === 'user') {
+    const n = t.value.trim();
+    if (!n) { toast('El nombre no puede quedar vacío'); render(); return; }
+    S.user = n; save(); syncRem(); toast('\u2713 Nombre guardado'); return;
+  }
+  save();
+});
+
+applyTheme();
+render();
+syncRem();
+</script>
+</body>
+</html>
