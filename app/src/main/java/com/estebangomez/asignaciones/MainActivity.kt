@@ -173,6 +173,17 @@ class MainActivity : ComponentActivity() {
         }
 
         @JavascriptInterface
+        fun share(text: String) {
+            runOnUiThread {
+                val i = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, text)
+                }
+                startActivity(Intent.createChooser(i, "Compartir mensaje"))
+            }
+        }
+
+        @JavascriptInterface
         fun saveFile(name: String, text: String) {
             pendingText = text
             runOnUiThread { saveLauncher.launch(name) }
