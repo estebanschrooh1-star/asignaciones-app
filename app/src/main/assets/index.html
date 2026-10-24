@@ -28,8 +28,10 @@ header svg{width:24px;height:24px}
 header [data-a="back"]{font-size:24px;margin-left:-12px;margin-right:4px}
 main{flex:1;overflow:auto;padding:14px 16px 20px}
 nav{position:relative;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);background:var(--sur)}
-nav button{border:0;border-radius:0;background:none;color:var(--mut);font-size:12px;padding:13px 0;transition:color .3s,background-color .2s}
-nav button.on{color:var(--acc);font-weight:700}
+nav button{border:0;border-radius:0;background:none;color:var(--mut);font-size:12px;padding:12px 0;transition:color .3s,background-color .2s}
+nav button.on{color:var(--acc)}
+nav button svg{width:26px;height:26px;display:block;margin:0 auto;transition:transform .32s cubic-bezier(.3,1.4,.5,1)}
+nav button.on svg{transform:scale(1.14)}
 nav button:active{transform:none;background:var(--sel)}
 .ind{position:absolute;top:-1px;left:0;width:20%;height:3px;background:var(--acc);border-radius:0 0 3px 3px;transform:translateX(calc(var(--i) * 100%));transition:transform .34s cubic-bezier(.3,.8,.25,1),background-color .35s}
 button,input,textarea,select{font:inherit}
@@ -55,7 +57,8 @@ label input,label textarea,label select{margin-top:4px;font-size:16px}
 .leg{color:var(--mut);font-size:12.5px;margin:6px 2px 0;line-height:1.35}
 .seg{position:relative;display:grid;gap:4px;padding:4px;background:var(--bg);border-radius:14px;margin-bottom:14px}
 .card .seg{margin-bottom:0}
-.seg button{position:relative;z-index:1;border:0;background:transparent;padding:10px 4px;font-weight:600;transition:color .28s,background-color .28s,transform .14s}
+.seg button{position:relative;z-index:1;border:0;background:transparent;padding:10px 4px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .28s,background-color .28s,transform .14s}
+.seg button svg{width:22px;height:22px;display:block;margin:0 auto}
 .seg.pl .on{color:var(--on)}
 .seg:not(.pl) .on{background:var(--acc);color:var(--on)}
 .pill{position:absolute;top:4px;bottom:4px;left:4px;background:var(--acc);border-radius:10px;z-index:0;transition:transform .34s cubic-bezier(.3,.8,.25,1),width .3s,background-color .35s}
@@ -65,7 +68,7 @@ label input,label textarea,label select{margin-top:4px;font-size:16px}
 .acc.on i{box-shadow:0 0 0 2px var(--sur),0 0 0 4px var(--c);transform:scale(1.1)}
 .acc.on{color:var(--ink);font-weight:700}
 .ghost{color:var(--gray);display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0 30px;text-align:center;font-size:15px;animation:fade .4s}
-.ghost svg{width:96px;height:96px;animation:float 3.8s ease-in-out infinite}
+.ghost svg{width:96px;height:96px}
 .bub{background:var(--bub);color:var(--bubi);border-radius:18px 18px 18px 4px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
 .bub.fx-bub{animation:pop .38s cubic-bezier(.2,.9,.3,1.1) backwards}
 .bub.fx-bub>*{animation:rise .42s cubic-bezier(.2,.7,.2,1) backwards}
@@ -162,7 +165,7 @@ header h1.fx-title{animation:slidein .3s cubic-bezier(.2,.8,.2,1)}
 @keyframes up{from{transform:translateY(100%)}to{transform:none}}
 @keyframes down{to{transform:translateY(100%)}}
 @keyframes slidein{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+:root[data-anim="off"] *,:root[data-anim="off"] *::before,:root[data-anim="off"] *::after{animation:none!important;transition:none!important}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important}}
 </style>
 </head>
@@ -189,7 +192,7 @@ const DEF = {
   people: [], hist: [], last: {}, any: {},
   hdr: 'Asignaciones para hoy',
   cls: 'Si alguien no puede av\u00edseme y yo me encargo de buscar a otro, gracias \u{1F64B}\u200D\u2642\uFE0F',
-  user: '', theme: 'sys', accent: 'orange', snd: true, hap: true, smart: false, day: '', sort: 'az', rem: [], v: 2
+  user: '', theme: 'sys', accent: 'orange', anim: true, snd: true, hap: true, smart: false, day: '', sort: 'az', rem: [], v: 2
 };
 const ACC = {orange:[24,92,40,62,'Naranja'], blue:[217,90,46,66,'Azul'], sky:[199,95,36,60,'Celeste'], red:[2,78,46,66,'Rojo'], green:[145,75,28,52,'Verde']};
 const ORDER = ['pre', 'lib', 'ata', 'pla', 'son', 'ext', 'int', 'mic'];
@@ -233,10 +236,20 @@ const ICON_G = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentC
 const ICON_H = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>';
 const ICON_F = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4-2v-4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
 const ICON_CH = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>';
+const ICON_MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a6.7 6.7 0 0 0 10.7 10.7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+const ICON_AUTO = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8a4 4 0 0 0 0 8z" fill="currentColor"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>';
+const NAVI = {
+  msg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+  ppl:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="17" cy="9" r="2.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.2 14.2c2.8.1 4.8 2.1 4.8 4.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  rol:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="11" r="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 16c.5-1.5 1.7-2.2 3-2.2s2.5.7 3 2.2M14.5 10h3.5M14.5 14h2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  rem:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 20.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  his:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3.2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+};
 const ICON_MSG = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 10h44a5 5 0 0 1 5 5v27a5 5 0 0 1-5 5H31L19 57V47h-9a5 5 0 0 1-5-5V15a5 5 0 0 1 5-5z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M16 23h32M16 32h21" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
 const ICON_WA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 7.8c-.4.5-.6 1.2-.3 2 .6 1.8 2.5 3.8 4.4 4.6.9.4 1.6.1 2.1-.4l.5-.7a.5.5 0 0 0-.1-.7l-1.5-1a.5.5 0 0 0-.7.1l-.5.6c-.9-.4-1.9-1.4-2.3-2.3l.6-.5a.5.5 0 0 0 .1-.7l-1-1.5a.5.5 0 0 0-.8 0z" fill="currentColor"/></svg>';
 const LOGO = '<svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" fill="var(--acc)"/><path fill="var(--on)" d="M22 24h12v12H22zM42 28h32v4H42zM22 42h12v12H22zM42 46h32v4H42zM22 60h12v12H22zM42 64h20v4H42z"/></svg>';
-const VER = (() => { try { return A ? A.version() : '1.2.0'; } catch (e) { return '1.2.0'; } })();
+const VER = (() => { try { return A ? A.version() : '1.2.1'; } catch (e) { return '1.2.1'; } })();
 
 function pickDay() {
   if (S.smart) {
@@ -267,6 +280,7 @@ function applyTheme() {
   const eff = S.theme === 'sys' ? (systemDark() ? 'dark' : 'light') : S.theme;
   const r = document.documentElement, c = ACC[S.accent] || ACC.orange;
   r.setAttribute('data-theme', eff);
+  r.setAttribute('data-anim', S.anim === false ? 'off' : 'on');
   r.style.setProperty('--h', c[0]); r.style.setProperty('--s', c[1] + '%');
   r.style.setProperty('--al', c[2] + '%'); r.style.setProperty('--ad', c[3] + '%');
   try { if (A) A.setBars(cssHex('--hd'), cssHex('--sur'), eff === 'light'); } catch (e) {}
@@ -367,9 +381,9 @@ function syncRem() {
 /* ---------- vistas ---------- */
 function segHTML(opts, cur, act) {
   const N = opts.length, i = opts.findIndex(o => o[0] === cur), pl = N <= 6;
-  const cols = pl ? `repeat(${N},1fr)` : 'repeat(auto-fit,minmax(60px,1fr))';
+  const cols = pl ? `repeat(${N},minmax(0,1fr))` : 'repeat(auto-fit,minmax(60px,1fr))';
   const pill = pl ? `<i class="pill" style="width:calc((100% - ${8 + 4 * (N - 1)}px)/${N});transform:translateX(calc(${Math.max(i, 0)} * (100% + 4px)))"></i>` : '';
-  return `<div class="seg ${pl ? 'pl' : ''}" style="grid-template-columns:${cols}">${pill}${opts.map(o => `<button class="${o[0] === cur ? 'on' : ''}" data-a="${act}" data-v="${o[0]}">${o[1]}</button>`).join('')}</div>`;
+  return `<div class="seg ${pl ? 'pl' : ''}" style="grid-template-columns:${cols}">${pill}${opts.map(o => `<button class="${o[0] === cur ? 'on' : ''}" data-a="${act}" data-v="${o[0]}"${o[2] ? ` aria-label="${o[2]}" title="${o[2]}"` : ''}>${o[1]}</button>`).join('')}</div>`;
 }
 function welcome() {
   return `<div class="wel">${LOGO}<h1>Asignaciones</h1><input id="un" placeholder="Nombre de usuario" autocomplete="off" aria-label="Nombre de usuario"><button class="pri" data-a="login">Iniciar sesión</button></div>`;
@@ -424,8 +438,8 @@ function vHis() {
 function vCfg() {
   const sw = (on, a, l) => `<div class="line"><span>${l}</span><button class="sw ${on ? 'on' : ''}" role="switch" aria-checked="${on}" aria-label="${l}" data-a="${a}"><i></i></button></div>`;
   const accs = Object.keys(ACC).map(k => `<button class="acc ${S.accent === k ? 'on' : ''}" data-a="ac" data-v="${k}" aria-label="${ACC[k][4]}"><i style="--c:hsl(${ACC[k][0]} ${ACC[k][1]}% ${ACC[k][2]}%)"></i><span>${ACC[k][4]}</span></button>`).join('');
-  return `<div class="card"><h2>Apariencia</h2>${segHTML([['light', 'Claro'], ['dark', 'Oscuro'], ['sys', 'Predeterminado']], S.theme, 'th')}<div class="accs">${accs}</div></div>
-<div class="card">${sw(S.snd, 'snd', 'Sonidos táctiles')}<div style="height:14px"></div>${sw(S.hap, 'hap', 'Vibración táctil')}</div>
+  return `<div class="card"><h2>Apariencia</h2>${segHTML([['light', ICON_SUN, 'Claro'], ['dark', ICON_MOON, 'Oscuro'], ['sys', ICON_AUTO, 'Predeterminado']], S.theme, 'th')}<div class="accs">${accs}</div></div>
+<div class="card">${sw(S.anim, 'anim', 'Animaciones')}<div style="height:14px"></div>${sw(S.snd, 'snd', 'Sonidos táctiles')}<div style="height:14px"></div>${sw(S.hap, 'hap', 'Vibración táctil')}</div>
 <div class="card">${sw(S.smart, 'smart', 'Día inteligente')}<p class="leg">Al abrir la app en uno de tus días configurados, se selecciona ese día automáticamente.</p></div>
 <div class="card"><h2>Editar días</h2><div class="dlist" data-kind="days">${S.days.map(d => `<div class="ditem drow"><span class="hdl" aria-label="Mover">${ICON_H}</span><input data-a="dname" data-id="${d.id}" value="${esc(d.name)}" aria-label="Nombre del día"><select data-a="dwd" data-id="${d.id}" aria-label="Día de la semana"><option value="0">Sin día</option>${DN.map((n, i) => `<option value="${i + 1}" ${d.wd === i + 1 ? 'selected' : ''}>${n}</option>`).join('')}</select><button class="dng" data-a="ddel" data-id="${d.id}">Quitar</button></div>`).join('')}</div><button data-a="dnew" style="width:100%">Agregar día</button></div>
 <div class="card"><label>Nombre de usuario<input data-a="user" value="${esc(S.user)}"></label></div>
@@ -441,7 +455,7 @@ function overlay() {
 }
 const NAV = () => {
   const ks = Object.keys(TT);
-  return `<nav><i class="ind" style="--i:${ks.indexOf(tab)}"></i>${ks.map(k => `<button class="${k === tab ? 'on' : ''}" data-a="tab" data-v="${k}">${TT[k]}</button>`).join('')}</nav>`;
+  return `<nav><i class="ind" style="--i:${ks.indexOf(tab)}"></i>${ks.map(k => `<button class="${k === tab ? 'on' : ''}" data-a="tab" data-v="${k}" aria-label="${TT[k]}" title="${TT[k]}">${NAVI[k]}</button>`).join('')}</nav>`;
 };
 
 /* ---------- render con "morph": conserva los elementos para poder animarlos ---------- */
@@ -498,7 +512,7 @@ function render() {
 function closeOv() {
   if (closing) return;
   closing = true; render();
-  setTimeout(() => { dlg = null; sheet = null; closing = false; render(); }, 175);
+  setTimeout(() => { dlg = null; sheet = null; closing = false; render(); }, S.anim === false ? 0 : 175);
 }
 
 /* ---------- arrastrar para reordenar (roles y días) ---------- */
@@ -558,7 +572,7 @@ function dragEnd() {
   const arr = d.kind === 'roles' ? S.roles : S.days;
   const [m] = arr.splice(d.i, 1); arr.splice(d.to, 0, m);
   save(); draft = null; sent = false;
-  setTimeout(render, 190);
+  setTimeout(render, S.anim === false ? 0 : 190);
 }
 document.addEventListener('pointerup', dragEnd);
 document.addEventListener('pointercancel', dragEnd);
@@ -590,10 +604,10 @@ function importText(s) {
   try {
     const o = JSON.parse(s);
     if (!o || !Array.isArray(o.roles) || !Array.isArray(o.people) || !Array.isArray(o.hist)) throw 0;
-    const keep = {user:S.user, theme:S.theme, accent:S.accent, snd:S.snd, hap:S.hap, smart:S.smart, rem:S.rem};
+    const keep = {user:S.user, theme:S.theme, accent:S.accent, anim:S.anim, snd:S.snd, hap:S.hap, smart:S.smart, rem:S.rem};
     S = Object.assign(clone(DEF), o);
     S.v = o.v || 1;
-    Object.assign(S, {user:keep.user, theme:keep.theme, accent:keep.accent, snd:keep.snd, hap:keep.hap, smart:keep.smart});
+    Object.assign(S, {user:keep.user, theme:keep.theme, accent:keep.accent, anim:keep.anim, snd:keep.snd, hap:keep.hap, smart:keep.smart});
     S.rem = Array.isArray(o.rem) ? o.rem : keep.rem;
     migrate();
     draft = null; sent = false; day = pickDay(); save(); syncRem(); applyTheme(); render();
@@ -685,6 +699,7 @@ document.addEventListener('click', e => {
   else if (a === 'batt') { try { A.batterySettings(); } catch (x) {} return; }
   else if (a === 'th') { S.theme = v; save(); applyTheme(); }
   else if (a === 'ac') { S.accent = v; save(); applyTheme(); }
+  else if (a === 'anim') { S.anim = !S.anim; save(); applyTheme(); }
   else if (a === 'snd') { S.snd = !S.snd; save(); if (S.snd) tap('ok'); }
   else if (a === 'hap') { S.hap = !S.hap; save(); if (S.hap) tap('ok'); }
   else if (a === 'smart') { S.smart = !S.smart; save(); if (S.smart) day = pickDay(); }
