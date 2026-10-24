@@ -125,8 +125,12 @@ label input,label textarea,label select{margin-top:4px;font-size:16px}
 .drow select{padding:10px 6px}
 .r1{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}
 .he{border-bottom:1px solid var(--line);padding:10px 0}
-.he b{display:block;margin-bottom:4px}
-.he div{font-size:14px;color:var(--mut)}
+.hrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.he b{display:block}
+.he .ln{font-size:14px;color:var(--mut)}
+.trash{border:0;background:none;width:44px;height:44px;min-height:0;padding:0;margin:-6px -8px -6px 0;color:var(--warn);display:grid;place-items:center;border-radius:50%}
+.trash:active{background:var(--sel)}
+.trash svg{width:22px;height:22px}
 .line{display:flex;justify-content:space-between;align-items:center}
 .sw{position:relative;width:52px;height:32px;min-height:0;padding:0;background:var(--bg);border:2px solid var(--line);border-radius:999px}
 .sw i{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:var(--mut);transition:left .26s cubic-bezier(.3,.9,.4,1.1),background-color .26s}
@@ -228,8 +232,8 @@ const INFO = {
   ppl:'Agregá una persona por línea y marcá qué roles puede cumplir. Tocá un nombre para editar sus roles o marcarlo como ausente. Usá Filtrar para ordenar y “Mostrar solo…” para ver quién cumple un rol.',
   rol:'Cada rol define cuántas personas lleva y en qué día se usa. Mantené apretado el ícono de tres barras y arrastralo para cambiar el orden en el mensaje. También podés editar el encabezado y la conclusión.',
   rem:'Elegí los días y la hora en que querés recibir el aviso. Si no llegan, permití las notificaciones y quitá la restricción de batería para esta app.',
-  his:'Acá quedan los mensajes que se copiaron, enviaron o compartieron.',
-  cfg:'Elegí el aspecto, el color de la app, los sonidos y la vibración. En Editar días cambiás los nombres, el día de la semana de cada uno y el orden (arrastrando las tres barras). Exportá una copia de seguridad en un archivo .txt.'
+  his:'Acá quedan los mensajes que se copiaron, enviaron o compartieron. Tocá el cesto para borrar uno; borrarlo no cambia el orden de rotación.',
+  cfg:'Elegí el aspecto, el color de la app, los sonidos y la vibración. En Editar días cambiás los nombres, el día de la semana de cada uno y el orden (arrastrando las tres barras). Exportá una copia de seguridad en un archivo .txt. En Restablecimiento podés borrar las personas, el historial o todos los datos; conviene exportar un respaldo antes.'
 };
 const ICON_I = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7.8" r="1.4" fill="currentColor"/><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>';
 const ICON_G = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>';
@@ -249,7 +253,7 @@ const NAVI = {
 const ICON_MSG = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 10h44a5 5 0 0 1 5 5v27a5 5 0 0 1-5 5H31L19 57V47h-9a5 5 0 0 1-5-5V15a5 5 0 0 1 5-5z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M16 23h32M16 32h21" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
 const ICON_WA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 7.8c-.4.5-.6 1.2-.3 2 .6 1.8 2.5 3.8 4.4 4.6.9.4 1.6.1 2.1-.4l.5-.7a.5.5 0 0 0-.1-.7l-1.5-1a.5.5 0 0 0-.7.1l-.5.6c-.9-.4-1.9-1.4-2.3-2.3l.6-.5a.5.5 0 0 0 .1-.7l-1-1.5a.5.5 0 0 0-.8 0z" fill="currentColor"/></svg>';
 const LOGO = '<svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" fill="var(--acc)"/><path fill="var(--on)" d="M22 24h12v12H22zM42 28h32v4H42zM22 42h12v12H22zM42 46h32v4H42zM22 60h12v12H22zM42 64h20v4H42z"/></svg>';
-const VER = (() => { try { return A ? A.version() : '1.2.1'; } catch (e) { return '1.2.1'; } })();
+const VER = (() => { try { return A ? A.version() : '1.3.0'; } catch (e) { return '1.3.0'; } })();
 
 function pickDay() {
   if (S.smart) {
@@ -328,8 +332,10 @@ function elig(r, used) {
 function gen() {
   const rs = S.roles.filter(r => r.d === 'all' || r.d === day);
   const pool = r => S.people.filter(p => !p.off && p.r.includes(r.id)).length;
-  const used = new Set(), res = {};
-  [...rs].sort((a, b) => pool(a) - pool(b)).forEach(r => {
+  const used = new Set(), res = {}, now = Date.now(), w = {};
+  /* Primero los roles con menos candidatos; a igualdad, primero el rol cuyo candidato lleva más tiempo esperando. */
+  rs.forEach(r => { const c = elig(r, new Set())[0]; w[r.id] = c ? now - (S.last[c.id + r.id] || 0) : 0; });
+  shuffle(rs).sort((a, b) => pool(a) - pool(b) || w[b.id] - w[a.id]).forEach(r => {
     res[r.id] = [];
     for (let i = 0; i < r.n; i++) {
       const c = elig(r, used)[0];
@@ -431,9 +437,10 @@ function vRem() {
   if (A) h += '<button data-a="batt" style="width:100%;margin-top:10px">Ajustes de batería</button><p class="leg">En caso de usar un teléfono Xiaomi, esta opción evita que el sistema bloquee los recordatorios para ahorrar batería.</p>';
   return h;
 }
+const ICON_TR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function vHis() {
   if (!S.hist.length) return '<p class="empty">Sin mensajes enviados.</p>';
-  return [...S.hist].reverse().map(e => `<div class="he"><b>${esc(e.dn || dayName(e.day))} ${new Date(e.t).toLocaleDateString('es-AR', {day:'numeric', month:'short'})}</b>${e.a.map(x => `<div>${esc(x[0])}: ${esc(x[1])}</div>`).join('')}</div>`).join('');
+  return [...S.hist].reverse().map(e => `<div class="he"><div class="hrow"><b>${esc(e.dn || dayName(e.day))} ${new Date(e.t).toLocaleDateString('es-AR', {day:'numeric', month:'short'})}</b><button class="trash" data-a="hdel" data-id="${e.t}" aria-label="Borrar mensaje" title="Borrar">${ICON_TR}</button></div>${e.a.map(x => `<div class="ln">${esc(x[0])}: ${esc(x[1])}</div>`).join('')}</div>`).join('');
 }
 function vCfg() {
   const sw = (on, a, l) => `<div class="line"><span>${l}</span><button class="sw ${on ? 'on' : ''}" role="switch" aria-checked="${on}" aria-label="${l}" data-a="${a}"><i></i></button></div>`;
@@ -442,13 +449,23 @@ function vCfg() {
 <div class="card">${sw(S.anim, 'anim', 'Animaciones')}<div style="height:14px"></div>${sw(S.snd, 'snd', 'Sonidos táctiles')}<div style="height:14px"></div>${sw(S.hap, 'hap', 'Vibración táctil')}</div>
 <div class="card">${sw(S.smart, 'smart', 'Día inteligente')}<p class="leg">Al abrir la app en uno de tus días configurados, se selecciona ese día automáticamente.</p></div>
 <div class="card"><h2>Editar días</h2><div class="dlist" data-kind="days">${S.days.map(d => `<div class="ditem drow"><span class="hdl" aria-label="Mover">${ICON_H}</span><input data-a="dname" data-id="${d.id}" value="${esc(d.name)}" aria-label="Nombre del día"><select data-a="dwd" data-id="${d.id}" aria-label="Día de la semana"><option value="0">Sin día</option>${DN.map((n, i) => `<option value="${i + 1}" ${d.wd === i + 1 ? 'selected' : ''}>${n}</option>`).join('')}</select><button class="dng" data-a="ddel" data-id="${d.id}">Quitar</button></div>`).join('')}</div><button data-a="dnew" style="width:100%">Agregar día</button></div>
+<div class="card"><h2>Restablecimiento</h2><div class="stack"><button class="dng" data-a="rsp">Restablecer personas</button><button class="dng" data-a="rsh">Restablecer historial</button><button class="dng" data-a="rsa">Restablecer app</button></div></div>
 <div class="card"><label>Nombre de usuario<input data-a="user" value="${esc(S.user)}"></label></div>
 <div class="card"><h2>Copia de seguridad</h2><div class="row"><button data-a="exp">Exportar</button><button data-a="imp">Importar</button></div><input type="file" id="bf" data-a="bf" accept=".txt,text/plain" hidden></div>
 <div class="card about"><div>Versión ${esc(VER)}</div><div>Idea de Esteban Gómez</div><div>Programado con Claude</div></div>`;
 }
 function overlay() {
-  const DT = {p:'este nombre', r:'este rol', d:'este día'}, o = closing ? ' out' : '';
-  if (dlg) return `<div class="ov${o}" data-a="noop"><div class="dlg"><p>¿Seguro que desea borrar ${DT[dlg.k]}? Esta acción no se puede deshacer.</p><div class="row"><button data-a="dno">NO</button><button class="pri" data-a="dyes">SÍ</button></div></div></div>`;
+  const o = closing ? ' out' : '', NR = ' Esta acción no se puede deshacer, a menos que tenga un respaldo.';
+  const MSG = {
+    p:'¿Seguro que desea borrar este nombre? Esta acción no se puede deshacer.',
+    r:'¿Seguro que desea borrar este rol? Esta acción no se puede deshacer.',
+    d:'¿Seguro que desea borrar este día? Esta acción no se puede deshacer.',
+    h:'¿Seguro que desea borrar este mensaje del historial? Esta acción no se puede deshacer.',
+    xp:'¿Seguro que desea borrar a todas las personas?' + NR,
+    xh:'¿Seguro que desea borrar todo el historial? El orden de rotación también vuelve a empezar.' + NR,
+    xa:'¿Seguro que desea restablecer la app? Se borrarán todos los datos y quedará como recién instalada.' + NR
+  };
+  if (dlg) return `<div class="ov${o}" data-a="noop"><div class="dlg"><p>${MSG[dlg.k]}</p><div class="row"><button data-a="dno">NO</button><button class="pri" data-a="dyes">SÍ</button></div></div></div>`;
   if (sheet && sheet.txt !== undefined) return `<div class="ov bt${o}" data-a="close"><div class="sheet" data-a="noop"><h2>Copiá el mensaje</h2><textarea rows="10" readonly>${esc(sheet.txt)}</textarea><button data-a="close">Cerrar</button></div></div>`;
   if (sheet) return `<div class="ov bt${o}" data-a="close"><div class="sheet" data-a="noop"><h2>Cambiar ${esc(rn(sheet.r))}</h2>${sheet.list.length ? sheet.list.map(p => `<button data-a="pick" data-v="${p.id}">${esc(p.name)}</button>`).join('') : '<p class="empty">No hay otros candidatos disponibles.</p>'}<button data-a="pick" data-v="">Dejar sin asignar</button><button data-a="close">Cerrar</button></div></div>`;
   return '';
@@ -614,6 +631,13 @@ function importText(s) {
     toast('\u2713 Respaldo cargado con éxito');
   } catch (x) { toast('El archivo no es una copia válida'); }
 }
+function resetApp() {
+  S = clone(DEF); S.v = 2;
+  try { localStorage.removeItem(K); } catch (e) {}
+  tab = 'msg'; cfg = false; info = false; open = null; menu = null; lastMenu = null; fRole = null;
+  draft = null; sent = false; nnv = ''; add.clear(); dlg = null; sheet = null; day = pickDay();
+  syncRem(); applyTheme();
+}
 window.onSaved = ok => toast(ok ? '\u2713 Respaldo exportado con éxito' : 'No se pudo guardar el archivo');
 window.onFilePicked = t => { if (t == null) toast('No se pudo leer el archivo'); else importText(t); };
 window.applyTheme = applyTheme;
@@ -685,7 +709,16 @@ document.addEventListener('click', e => {
   else if (a === 'del') dlg = {k:'p', id};
   else if (a === 'rdel') dlg = {k:'r', id};
   else if (a === 'ddel') { if (S.days.length <= 1) { toast('Debe quedar al menos un día'); return; } dlg = {k:'d', id}; }
+  else if (a === 'hdel') dlg = {k:'h', id};
+  else if (a === 'rsp') { if (!S.people.length) { toast('No hay personas para borrar'); return; } dlg = {k:'xp'}; }
+  else if (a === 'rsh') { if (!S.hist.length) { toast('El historial ya está vacío'); return; } dlg = {k:'xh'}; }
+  else if (a === 'rsa') dlg = {k:'xa'};
   else if (a === 'dyes') {
+    const k = dlg.k;
+    if (k === 'h') { S.hist = S.hist.filter(e => String(e.t) !== String(dlg.id)); draft = null; sent = false; save(); toast('\u2713 Mensaje borrado'); closeOv(); return; }
+    if (k === 'xp') { S.people = []; S.last = {}; S.any = {}; open = null; fRole = null; draft = null; sent = false; save(); toast('\u2713 Personas borradas'); closeOv(); return; }
+    if (k === 'xh') { S.hist = []; S.last = {}; S.any = {}; draft = null; sent = false; save(); toast('\u2713 Historial borrado'); closeOv(); return; }
+    if (k === 'xa') { resetApp(); toast('\u2713 App restablecida'); closeOv(); return; }
     if (dlg.k === 'p') { S.people = S.people.filter(p => p.id !== dlg.id); open = null; }
     else if (dlg.k === 'r') { S.roles = S.roles.filter(r => r.id !== dlg.id); S.people.forEach(p => p.r = p.r.filter(x => x !== dlg.id)); if (fRole === dlg.id) fRole = null; }
     else { S.days = S.days.filter(d => d.id !== dlg.id); S.roles.forEach(r => { if (r.d === dlg.id) r.d = 'all'; }); if (S.day === dlg.id) S.day = ''; day = pickDay(); }
