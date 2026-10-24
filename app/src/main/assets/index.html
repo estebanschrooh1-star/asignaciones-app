@@ -67,6 +67,21 @@ label input,label textarea,label select{margin-top:4px;font-size:16px}
 .acc i{width:36px;height:36px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px var(--sur),0 0 0 4px transparent;transition:box-shadow .3s,transform .3s cubic-bezier(.3,1.4,.5,1)}
 .acc.on i{box-shadow:0 0 0 2px var(--sur),0 0 0 4px var(--c);transform:scale(1.1)}
 .acc.on{color:var(--ink);font-weight:700}
+.lk{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center}
+.lkh{display:flex;flex-direction:column;align-items:center;gap:12px}
+.lkh svg{width:72px;height:72px;border-radius:18px}
+.lkh h1{margin:0;font-size:24px}
+.lkt{font-size:20px;margin:0}
+.lkm{margin:0;color:var(--mut);min-height:1.4em;font-size:15px}
+.lkm.err{color:var(--warn)}
+.lk .pri,.lk>button{max-width:320px}
+.pat{width:min(300px,78vw);aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none}
+.pat svg{width:100%;height:100%;display:block;touch-action:none}
+.pat polyline{fill:none;stroke:var(--acc);stroke-width:8;stroke-linecap:round;stroke-linejoin:round;opacity:.65}
+.pd{fill:var(--mut);transform-box:fill-box;transform-origin:center;transition:transform .16s,fill .16s}
+.pd.sel{fill:var(--acc);transform:scale(1.8)}
+.shake{animation:shake .38s}
+@keyframes shake{20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}
 .ghost{color:var(--gray);display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0 30px;text-align:center;font-size:15px;animation:fade .4s}
 .ghost svg{width:96px;height:96px}
 .bub{background:var(--bub);color:var(--bubi);border-radius:18px 18px 18px 4px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
@@ -219,6 +234,13 @@ function migrate() {
 }
 migrate();
 const save = () => { try { localStorage.setItem(K, JSON.stringify(S)); } catch (e) {} };
+const LK = 'asignaciones_lock_v1';
+const L0 = () => ({on:false, mode:'', salt:'', hash:'', n:0, u:0});
+let L; try { L = JSON.parse(localStorage.getItem(LK)); } catch (e) { L = null; }
+L = Object.assign(L0(), L && typeof L === 'object' ? L : {});
+const saveL = () => { try { localStorage.setItem(LK, JSON.stringify(L)); } catch (e) {} };
+let locked = !!L.on, authing = false, pendingAuth = null, hiddenAt = 0, patBusy = false, pd = null;
+let pl = (locked && L.mode === 'app') ? {kind:'unlock', msg:'', err:false} : null;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const uid = () => Math.random().toString(36).slice(2, 9);
 const rn = id => (S.roles.find(r => r.id === id) || {name:'?'}).name;
@@ -233,7 +255,7 @@ const INFO = {
   rol:'Cada rol define cuántas personas lleva y en qué día se usa. Mantené apretado el ícono de tres barras y arrastralo para cambiar el orden en el mensaje. También podés editar el encabezado y la conclusión.',
   rem:'Elegí los días y la hora en que querés recibir el aviso. Si no llegan, permití las notificaciones y quitá la restricción de batería para esta app.',
   his:'Acá quedan los mensajes que se copiaron, enviaron o compartieron. Tocá el cesto para borrar uno; borrarlo no cambia el orden de rotación.',
-  cfg:'Elegí el aspecto, el color de la app, los sonidos y la vibración. En Editar días cambiás los nombres, el día de la semana de cada uno y el orden (arrastrando las tres barras). Exportá una copia de seguridad en un archivo .txt. En Restablecimiento podés borrar las personas, el historial o todos los datos; conviene exportar un respaldo antes.'
+  cfg:'Elegí el aspecto, el color de la app, los sonidos y la vibración. En Editar días cambiás los nombres, el día de la semana de cada uno y el orden (arrastrando las tres barras). Exportá una copia de seguridad cifrada en un archivo .txt. Con el bloqueo, la app se cierra con llave al salir por más de 30 segundos. En Restablecimiento podés borrar las personas, el historial o todos los datos; conviene exportar un respaldo antes.'
 };
 const ICON_I = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7.8" r="1.4" fill="currentColor"/><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>';
 const ICON_G = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>';
@@ -253,7 +275,7 @@ const NAVI = {
 const ICON_MSG = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 10h44a5 5 0 0 1 5 5v27a5 5 0 0 1-5 5H31L19 57V47h-9a5 5 0 0 1-5-5V15a5 5 0 0 1 5-5z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M16 23h32M16 32h21" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
 const ICON_WA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 7.8c-.4.5-.6 1.2-.3 2 .6 1.8 2.5 3.8 4.4 4.6.9.4 1.6.1 2.1-.4l.5-.7a.5.5 0 0 0-.1-.7l-1.5-1a.5.5 0 0 0-.7.1l-.5.6c-.9-.4-1.9-1.4-2.3-2.3l.6-.5a.5.5 0 0 0 .1-.7l-1-1.5a.5.5 0 0 0-.8 0z" fill="currentColor"/></svg>';
 const LOGO = '<svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" fill="var(--acc)"/><path fill="var(--on)" d="M22 24h12v12H22zM42 28h32v4H42zM22 42h12v12H22zM42 46h32v4H42zM22 60h12v12H22zM42 64h20v4H42z"/></svg>';
-const VER = (() => { try { return A ? A.version() : '1.3.0'; } catch (e) { return '1.3.0'; } })();
+const VER = (() => { try { return A ? A.version() : '1.4.0'; } catch (e) { return '1.4.0'; } })();
 
 function pickDay() {
   if (S.smart) {
@@ -451,7 +473,8 @@ function vCfg() {
 <div class="card"><h2>Editar días</h2><div class="dlist" data-kind="days">${S.days.map(d => `<div class="ditem drow"><span class="hdl" aria-label="Mover">${ICON_H}</span><input data-a="dname" data-id="${d.id}" value="${esc(d.name)}" aria-label="Nombre del día"><select data-a="dwd" data-id="${d.id}" aria-label="Día de la semana"><option value="0">Sin día</option>${DN.map((n, i) => `<option value="${i + 1}" ${d.wd === i + 1 ? 'selected' : ''}>${n}</option>`).join('')}</select><button class="dng" data-a="ddel" data-id="${d.id}">Quitar</button></div>`).join('')}</div><button data-a="dnew" style="width:100%">Agregar día</button></div>
 <div class="card"><h2>Restablecimiento</h2><div class="stack"><button class="dng" data-a="rsp">Restablecer personas</button><button class="dng" data-a="rsh">Restablecer historial</button><button class="dng" data-a="rsa">Restablecer app</button></div></div>
 <div class="card"><label>Nombre de usuario<input data-a="user" value="${esc(S.user)}"></label></div>
-<div class="card"><h2>Copia de seguridad</h2><div class="row"><button data-a="exp">Exportar</button><button data-a="imp">Importar</button></div><input type="file" id="bf" data-a="bf" accept=".txt,text/plain" hidden></div>
+<div class="card">${sw(L.on, 'lock', 'Bloqueo con patrón')}<p class="leg">Usa el bloqueo de tu teléfono si tiene uno; si no, creás un patrón dentro de la app.</p>${L.on && L.mode === 'app' ? '<button data-a="lockchg" style="width:100%;margin-top:10px">Cambiar patrón</button>' : ''}</div>
+<div class="card"><h2>Copia de seguridad</h2><div class="row"><button data-a="exp">Exportar</button><button data-a="imp">Importar</button></div><p class="leg">Las copias se guardan cifradas: solo esta app puede leerlas.</p><input type="file" id="bf" data-a="bf" accept=".txt,text/plain" hidden></div>
 <div class="card about"><div>Versión ${esc(VER)}</div><div>Idea de Esteban Gómez</div><div>Programado con Claude</div></div>`;
 }
 function overlay() {
@@ -519,6 +542,8 @@ function re(sel, cls) {
 }
 const FXM = {main:['#main', 'fx-main'], bub:['.bub', 'fx-bub'], title:['header h1', 'fx-title'], list:['.plist', 'fx-list']};
 function render() {
+  if (pl && pl.kind !== 'unlock') { patch(patScreen()); return; }
+  if (locked) { patch(lockScreen()); return; }
   if (!S.user) { patch(welcome()); return; }
   if (!S.days.some(d => d.id === day)) day = S.days[0].id;
   const view = cfg ? vCfg : {msg:vMsg, ppl:vPpl, rol:vRol, rem:vRem, his:vHis}[tab];
@@ -607,19 +632,44 @@ function copyText(s, cb) {
   };
   try { navigator.clipboard.writeText(s).then(cb, fb); } catch (x) { fb(); }
 }
-function doExport() {
+/* ---- cifrado de respaldos (AES-GCM; clave derivada de un secreto interno de la app) ---- */
+const APPKEY = 'Asignaciones|Esteban Gomez|respaldo|v1|7c1e9a';
+const TE = new TextEncoder(), TD = new TextDecoder();
+const b64 = u => { let t = ''; u.forEach(x => t += String.fromCharCode(x)); return btoa(t); };
+const unb64 = t => Uint8Array.from(atob(String(t).replace(/\s+/g, '')), c => c.charCodeAt(0));
+async function aesKey(salt) {
+  const km = await crypto.subtle.importKey('raw', TE.encode(APPKEY), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:120000, hash:'SHA-256'}, km, {name:'AES-GCM', length:256}, false, ['encrypt', 'decrypt']);
+}
+async function seal(text) {
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv}, await aesKey(salt), TE.encode(text)));
+  const out = new Uint8Array(28 + ct.length);
+  out.set(salt, 0); out.set(iv, 16); out.set(ct, 28);   /* todo es aleatorio: el archivo no tiene ninguna marca reconocible */
+  return b64(out);
+}
+async function unseal(t) {
+  const u = unb64(t);
+  if (u.length < 45) throw 0;
+  return TD.decode(await crypto.subtle.decrypt({name:'AES-GCM', iv:u.slice(16, 28)}, await aesKey(u.slice(0, 16)), u.slice(28)));
+}
+async function doExport() {
   const n = new Date(), p = x => String(x).padStart(2, '0');
   const name = 'asignaciones-respaldo-' + n.getFullYear() + '-' + p(n.getMonth() + 1) + '-' + p(n.getDate()) + '_' + p(n.getHours()) + '-' + p(n.getMinutes()) + '.txt';
-  const data = JSON.stringify(S);
+  let data;
+  try { data = (window.crypto && crypto.subtle) ? await seal(JSON.stringify(S)) : JSON.stringify(S); }
+  catch (e) { toast('No se pudo crear el respaldo'); return; }
   if (A) { A.saveFile(name, data); return; }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([data], {type:'text/plain'})); a.download = name;
   document.body.appendChild(a); a.click(); a.remove();
   toast('\u2713 Respaldo exportado con éxito');
 }
-function importText(s) {
+async function importText(s) {
   try {
-    const o = JSON.parse(s);
+    let raw = String(s).trim();
+    if (raw.charAt(0) !== '{') raw = await unseal(raw);   /* acepta respaldos cifrados y los antiguos en texto plano */
+    const o = JSON.parse(raw);
     if (!o || !Array.isArray(o.roles) || !Array.isArray(o.people) || !Array.isArray(o.hist)) throw 0;
     const keep = {user:S.user, theme:S.theme, accent:S.accent, anim:S.anim, snd:S.snd, hap:S.hap, smart:S.smart, rem:S.rem};
     S = Object.assign(clone(DEF), o);
@@ -631,9 +681,148 @@ function importText(s) {
     toast('\u2713 Respaldo cargado con éxito');
   } catch (x) { toast('El archivo no es una copia válida'); }
 }
+
+/* ---- bloqueo con patrón ---- */
+const PX = i => 50 + 100 * (i % 3), PY = i => 50 + 100 * Math.floor(i / 3);
+function patHTML() {
+  let d = '';
+  for (let i = 0; i < 9; i++) d += `<circle class="pd" data-i="${i}" cx="${PX(i)}" cy="${PY(i)}" r="9"/>`;
+  return `<div class="pat" id="pat"><svg viewBox="0 0 300 300" aria-label="Patrón"><polyline id="ppoly" points=""/>${d}</svg></div>`;
+}
+function lockScreen() {
+  const dev = L.mode === 'device';
+  if (!dev && !pl) pl = {kind:'unlock', msg:'', err:false};
+  return `<div class="lk"><div class="lkh">${LOGO}<h1>Asignaciones</h1></div>${dev ? '<p class="lkm" id="pmsg">Bloqueada</p><button class="pri" data-a="unlock">Desbloquear</button>' : `<p class="lkm ${pl.err ? 'err' : ''}" id="pmsg">${esc(pl.msg || 'Dibujá tu patrón')}</p>${patHTML()}`}</div>`;
+}
+function patScreen() {
+  const T = {new1:'Creá tu patrón', new2:'Repetí el patrón', verify:'Confirmá tu patrón'};
+  return `<div class="lk"><h2 class="lkt">${T[pl.kind]}</h2><p class="lkm ${pl.err ? 'err' : ''}" id="pmsg">${esc(pl.msg || 'Uní al menos 4 puntos')}</p>${patHTML()}<button data-a="plcancel">Cancelar</button></div>`;
+}
+function setMsg(m, err) {
+  if (pl) { pl.msg = m; pl.err = !!err; }
+  const el = $('#pmsg'); if (el) { el.textContent = m; el.classList.toggle('err', !!err); }
+}
+function lockoutMsg() { setMsg('Demasiados intentos. Esperá ' + Math.ceil((L.u - Date.now()) / 1000) + ' s', true); }
+async function hashPat(seq, salt) {
+  const k = await crypto.subtle.importKey('raw', TE.encode(seq), 'PBKDF2', false, ['deriveBits']);
+  return b64(new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2', salt:unb64(salt), iterations:100000, hash:'SHA-256'}, k, 256)));
+}
+function between(a, b) {
+  const ax = a % 3, ay = Math.floor(a / 3), bx = b % 3, by = Math.floor(b / 3);
+  if ((ax + bx) % 2 === 0 && (ay + by) % 2 === 0 && (ax !== bx || ay !== by)) return ((ay + by) / 2) * 3 + (ax + bx) / 2;
+  return null;
+}
+function patPos(e) {
+  const r = $('#pat svg').getBoundingClientRect();
+  return [(e.clientX - r.left) * 300 / (r.width || 300), (e.clientY - r.top) * 300 / (r.height || 300)];
+}
+function patDraw(x, y) {
+  const pts = pd.seq.map(i => PX(i) + ',' + PY(i));
+  if (x != null) pts.push(x + ',' + y);
+  const pol = $('#ppoly'); if (pol) pol.setAttribute('points', pts.join(' '));
+  document.querySelectorAll('#pat .pd').forEach(c => c.classList.toggle('sel', pd.seq.includes(+c.dataset.i)));
+}
+function patMove(e) {
+  const [x, y] = patPos(e);
+  for (let i = 0; i < 9; i++) {
+    if (Math.hypot(x - PX(i), y - PY(i)) < 36 && !pd.seq.includes(i)) {
+      const last = pd.seq[pd.seq.length - 1];
+      if (last !== undefined) { const m = between(last, i); if (m !== null && !pd.seq.includes(m)) pd.seq.push(m); }
+      pd.seq.push(i); tap();
+    }
+  }
+  patDraw(x, y);
+}
+function clearPat() {
+  const pol = $('#ppoly'); if (pol) pol.setAttribute('points', '');
+  document.querySelectorAll('#pat .pd').forEach(c => c.classList.remove('sel'));
+}
+function patEnd() {
+  if (!pd) return;
+  const seq = pd.seq; pd = null;
+  if (!seq.length) return;
+  patBusy = true;
+  setTimeout(() => { clearPat(); patBusy = false; }, 380);
+  patDone(seq.join('-'), seq.length);
+}
+async function patDone(str, len) {
+  if (!pl) return;
+  if (len < 4) { setMsg('Uní al menos 4 puntos', true); re('#pat', 'shake'); return; }
+  const k = pl.kind;
+  try {
+    if (k === 'unlock' || k === 'verify') {
+      if (Date.now() < L.u) { lockoutMsg(); return; }
+      if (await hashPat(str, L.salt) === L.hash) {
+        L.n = 0; L.u = 0; saveL();
+        if (k === 'unlock') { locked = false; pl = null; fx = ['main', 'title']; render(); }
+        else { const cb = pl.cb; pl = null; render(); if (cb) cb(); }
+      } else {
+        L.n++;
+        if (L.n % 5 === 0) L.u = Date.now() + Math.min(30000 * Math.pow(2, L.n / 5 - 1), 600000);
+        saveL(); re('#pat', 'shake');
+        if (Date.now() < L.u) lockoutMsg(); else setMsg('Patrón incorrecto', true);
+      }
+    } else if (k === 'new1') {
+      pl.first = str; pl.kind = 'new2'; pl.msg = 'Dibujalo otra vez para confirmar'; pl.err = false; render();
+    } else if (k === 'new2') {
+      if (str !== pl.first) { pl.kind = 'new1'; pl.first = null; pl.msg = 'No coincide. Empezá de nuevo'; pl.err = true; render(); return; }
+      const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+      L.salt = salt; L.hash = await hashPat(str, salt); L.on = true; L.mode = 'app'; L.n = 0; L.u = 0; saveL();
+      if (pl.fromLock) locked = false;
+      pl = null; toast('\u2713 Bloqueo activado'); render();
+    }
+  } catch (e) { setMsg('No se pudo verificar el patrón', true); }
+}
+document.addEventListener('pointerdown', e => {
+  const el = e.target.closest && e.target.closest('#pat'); if (!el || patBusy || !pl) return;
+  if ((pl.kind === 'unlock' || pl.kind === 'verify') && Date.now() < L.u) { lockoutMsg(); return; }
+  pd = {seq:[]}; e.preventDefault();
+  try { el.setPointerCapture(e.pointerId); } catch (x) {}
+  patMove(e);
+}, {passive:false});
+document.addEventListener('pointermove', e => { if (pd) { e.preventDefault(); patMove(e); } }, {passive:false});
+document.addEventListener('pointerup', patEnd);
+document.addEventListener('pointercancel', patEnd);
+
+function promptDevice() {
+  if (!A) return;
+  authing = true; pendingAuth = null;
+  try { A.authenticate(); } catch (e) { authing = false; }
+}
+function verifyThen(cb) {
+  if (L.mode === 'device' && A) { authing = true; pendingAuth = cb; try { A.authenticate(); } catch (e) { authing = false; } }
+  else { pl = {kind:'verify', msg:'', err:false, cb}; render(); }
+}
+function enableLock() {
+  let sec = false;
+  try { sec = !!(A && A.deviceSecure()); } catch (e) {}
+  if (sec) {
+    authing = true;
+    pendingAuth = () => { L.on = true; L.mode = 'device'; L.n = 0; L.u = 0; saveL(); toast('\u2713 Bloqueo activado'); render(); };
+    try { A.authenticate(); } catch (e) { authing = false; }
+  } else { pl = {kind:'new1', msg:'', err:false}; render(); }
+}
+function disableLock() {
+  verifyThen(() => { L = L0(); saveL(); toast('\u2713 Bloqueo desactivado'); render(); });
+}
+window.onAuth = r => {
+  authing = false;
+  const f = pendingAuth; pendingAuth = null;
+  if (r === 'none') {
+    if (locked) { pl = {kind:'new1', msg:'El teléfono ya no tiene bloqueo. Creá un patrón nuevo.', err:false, fromLock:true}; render(); }
+    else { pl = {kind:'new1', msg:'', err:false}; render(); }
+    return;
+  }
+  if (r === true) {
+    if (locked) { locked = false; L.n = 0; L.u = 0; saveL(); fx = ['main', 'title']; render(); }
+    else if (f) f();
+  }
+};
+
 function resetApp() {
   S = clone(DEF); S.v = 2;
-  try { localStorage.removeItem(K); } catch (e) {}
+  try { localStorage.removeItem(K); localStorage.removeItem(LK); } catch (e) {}
+  L = L0(); locked = false; pl = null;
   tab = 'msg'; cfg = false; info = false; open = null; menu = null; lastMenu = null; fRole = null;
   draft = null; sent = false; nnv = ''; add.clear(); dlg = null; sheet = null; day = pickDay();
   syncRem(); applyTheme();
@@ -642,6 +831,8 @@ window.onSaved = ok => toast(ok ? '\u2713 Respaldo exportado con éxito' : 'No s
 window.onFilePicked = t => { if (t == null) toast('No se pudo leer el archivo'); else importText(t); };
 window.applyTheme = applyTheme;
 window.onBack = () => {
+  if (pl && pl.kind !== 'unlock') { pl = null; render(); return true; }
+  if (locked) return false;
   if (dlg || sheet) { closeOv(); return true; }
   if (menu) { menu = null; render(); return true; }
   if (info) { info = false; render(); return true; }
@@ -650,7 +841,14 @@ window.onBack = () => {
   return false;
 };
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && S.user && !draft && !dlg && !sheet) { day = pickDay(); render(); }
+  if (document.visibilityState === 'hidden') { hiddenAt = Date.now(); return; }
+  if (L.on && !authing && !locked && hiddenAt && Date.now() - hiddenAt > 30000) {
+    hiddenAt = 0; locked = true; dlg = null; sheet = null; pl = L.mode === 'app' ? {kind:'unlock', msg:'', err:false} : null;
+    render(); if (L.mode === 'device') promptDevice();
+    return;
+  }
+  hiddenAt = 0;
+  if (S.user && !locked && !pl && !draft && !dlg && !sheet) { day = pickDay(); render(); }
 });
 
 /* ---------- eventos ---------- */
@@ -736,6 +934,10 @@ document.addEventListener('click', e => {
   else if (a === 'snd') { S.snd = !S.snd; save(); if (S.snd) tap('ok'); }
   else if (a === 'hap') { S.hap = !S.hap; save(); if (S.hap) tap('ok'); }
   else if (a === 'smart') { S.smart = !S.smart; save(); if (S.smart) day = pickDay(); }
+  else if (a === 'lock') { if (L.on) disableLock(); else enableLock(); return; }
+  else if (a === 'lockchg') { verifyThen(() => { pl = {kind:'new1', msg:'', err:false}; render(); }); return; }
+  else if (a === 'unlock') { promptDevice(); return; }
+  else if (a === 'plcancel') { pl = null; }
   else if (a === 'exp') { doExport(); return; }
   else if (a === 'imp') { if (A) A.pickFile(); else $('#bf').click(); return; }
   render();
@@ -763,6 +965,7 @@ document.addEventListener('change', e => {
 applyTheme();
 render();
 syncRem();
+if (locked && L.mode === 'device') promptDevice();
 </script>
 </body>
 </html>

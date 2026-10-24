@@ -2,6 +2,7 @@ package com.estebangomez.asignaciones
 
 import android.Manifest
 import android.app.AlarmManager
+import android.app.KeyguardManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -60,6 +61,12 @@ class MainActivity : ComponentActivity() {
 
     private val permLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
+    private val authLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
+            val ok = r.resultCode == RESULT_OK
+            js("window.onAuth&&window.onAuth($ok)")
+        }
 
     private fun js(code: String) {
         runOnUiThread { web.evaluateJavascript(code, null) }
@@ -141,6 +148,23 @@ class MainActivity : ComponentActivity() {
 
         @JavascriptInterface
         fun isDark(): Boolean = this@MainActivity.isDark()
+
+        @JavascriptInterface
+        fun deviceSecure(): Boolean {
+            val km = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+            return km.isDeviceSecure
+        }
+
+        @JavascriptInterface
+        fun authenticate() {
+            runOnUiThread {
+                val km = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+                val i = if (km.isDeviceSecure)
+                    km.createConfirmDeviceCredentialIntent("Asignaciones", "Confirmá tu identidad para continuar")
+                else null
+                if (i == null) js("window.onAuth&&window.onAuth('none')") else authLauncher.launch(i)
+            }
+        }
 
         @JavascriptInterface
         fun haptic(kind: Int) {

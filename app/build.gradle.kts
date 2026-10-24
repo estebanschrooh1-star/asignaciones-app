@@ -11,8 +11,8 @@ android {
         applicationId = "com.estebangomez.asignaciones"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "1.3.0"
+        versionCode = 6
+        versionName = "1.4.0"
     }
 
     // Clave fija: permite instalar cada versión nueva encima de la anterior sin perder datos.
