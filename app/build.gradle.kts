@@ -11,8 +11,8 @@ android {
         applicationId = "com.estebangomez.asignaciones"
         minSdk = 26
         targetSdk = 34
-        versionCode = 6
-        versionName = "1.4.0"
+        versionCode = 7
+        versionName = "1.5.0"
     }
 
     // Clave fija: permite instalar cada versión nueva encima de la anterior sin perder datos.
@@ -43,4 +43,5 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.activity:activity-ktx:1.9.2")
     implementation("androidx.webkit:webkit:1.11.0")
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
 }

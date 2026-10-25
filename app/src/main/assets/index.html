@@ -82,6 +82,27 @@ label input,label textarea,label select{margin-top:4px;font-size:16px}
 .pd.sel{fill:var(--acc);transform:scale(1.8)}
 .shake{animation:shake .38s}
 @keyframes shake{20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}
+.drv{display:flex;align-items:center;gap:10px;min-width:0}
+.drv svg{width:22px;height:22px;flex:none;color:var(--ink)}
+.cloudbox{padding-top:14px}
+.cfr{width:auto;min-width:120px}
+.upl{display:flex;align-items:center;justify-content:center;gap:10px;width:100%}
+.upl svg{width:22px;height:22px}
+.pdfx{padding-top:10px}
+.pdfx button{width:100%}
+.ib{display:flex;align-items:center;justify-content:center;gap:8px}
+.ib svg{width:24px;height:24px}
+header button.dim{opacity:.6}
+[hidden]{display:none!important}
+.pv{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column;animation:fade .22s}
+.pvh{background:var(--hd);color:var(--hdi);display:flex;align-items:center;gap:2px;padding:4px 8px;min-height:56px}
+.pvh span{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 6px}
+.pvh button{background:none;border:0;border-radius:50%;color:var(--hdi);width:44px;height:44px;min-height:0;padding:0;font-size:24px}
+.pvb{flex:1;overflow:auto;touch-action:pan-x pan-y}
+.pvw{position:relative;width:100%;padding:8px 0}
+.pg{position:relative;width:calc(100% - 16px);margin:0 auto 10px;height:0;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.28)}
+.pg canvas{position:absolute;left:0;top:0;width:100%;height:100%}
+.pvm{padding:40px 16px;text-align:center;color:var(--mut)}
 .ghost{color:var(--gray);display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0 30px;text-align:center;font-size:15px;animation:fade .4s}
 .ghost svg{width:96px;height:96px}
 .bub{background:var(--bub);color:var(--bubi);border-radius:18px 18px 18px 4px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
@@ -191,6 +212,7 @@ header h1.fx-title{animation:slidein .3s cubic-bezier(.2,.8,.2,1)}
 <body>
 <div id="app"></div>
 <div class="toast" id="toast"></div>
+<div class="pv" id="pv" hidden></div>
 <script>
 const $ = s => document.querySelector(s);
 const A = window.Android;
@@ -211,7 +233,7 @@ const DEF = {
   people: [], hist: [], last: {}, any: {},
   hdr: 'Asignaciones para hoy',
   cls: 'Si alguien no puede av\u00edseme y yo me encargo de buscar a otro, gracias \u{1F64B}\u200D\u2642\uFE0F',
-  user: '', theme: 'sys', accent: 'orange', anim: true, snd: true, hap: true, smart: false, day: '', sort: 'az', rem: [], v: 2
+  user: '', theme: 'sys', accent: 'orange', anim: true, snd: true, hap: true, smart: false, day: '', sort: 'az', rem: [], cloud: {on:false, freq:'month', since:0, folder:''}, v: 2
 };
 const ACC = {orange:[24,92,40,62,'Naranja'], blue:[217,90,46,66,'Azul'], sky:[199,95,36,60,'Celeste'], red:[2,78,46,66,'Rojo'], green:[145,75,28,52,'Verde']};
 const ORDER = ['pre', 'lib', 'ata', 'pla', 'son', 'ext', 'int', 'mic'];
@@ -224,6 +246,7 @@ function migrate() {
   if (!Array.isArray(S.days) || !S.days.length) S.days = clone(DEF.days);
   if (!Array.isArray(S.rem)) S.rem = [];
   if (!ACC[S.accent]) S.accent = 'orange';
+  if (!S.cloud || typeof S.cloud !== 'object') S.cloud = clone(DEF.cloud);
   if ((S.v || 1) < 2) {
     const i = S.roles.find(r => r.id === 'int');
     if (i && i.name === 'Acomodador interior') i.name = 'Acomodador exterior';
@@ -233,7 +256,7 @@ function migrate() {
   }
 }
 migrate();
-const save = () => { try { localStorage.setItem(K, JSON.stringify(S)); } catch (e) {} };
+const save = () => { try { localStorage.setItem(K, JSON.stringify(S)); } catch (e) {} queueSnap(); };
 const LK = 'asignaciones_lock_v1';
 const L0 = () => ({on:false, mode:'', salt:'', hash:'', n:0, u:0});
 let L; try { L = JSON.parse(localStorage.getItem(LK)); } catch (e) { L = null; }
@@ -250,12 +273,12 @@ const DN = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 const TT = {msg:'Mensaje', ppl:'Personas', rol:'Roles', rem:'Avisos', his:'Historial'};
 const SORTS = [['az','A-Z'], ['rec','Asignado recientemente'], ['old','Asignado hace mucho'], ['add','Agregado recientemente']];
 const INFO = {
-  msg:'Elegí el día, generá el mensaje y tocá un nombre para cambiarlo. Al copiar, enviar por WhatsApp o compartir, el mensaje queda registrado en el historial y los nombres cuentan como usados.',
+  msg:'El ícono PDF abre la planilla que subiste. Elegí el día, generá el mensaje y tocá un nombre para cambiarlo. Al copiar, enviar por WhatsApp o compartir, el mensaje queda registrado en el historial y los nombres cuentan como usados.',
   ppl:'Agregá una persona por línea y marcá qué roles puede cumplir. Tocá un nombre para editar sus roles o marcarlo como ausente. Usá Filtrar para ordenar y “Mostrar solo…” para ver quién cumple un rol.',
   rol:'Cada rol define cuántas personas lleva y en qué día se usa. Mantené apretado el ícono de tres barras y arrastralo para cambiar el orden en el mensaje. También podés editar el encabezado y la conclusión.',
   rem:'Elegí los días y la hora en que querés recibir el aviso. Si no llegan, permití las notificaciones y quitá la restricción de batería para esta app.',
   his:'Acá quedan los mensajes que se copiaron, enviaron o compartieron. Tocá el cesto para borrar uno; borrarlo no cambia el orden de rotación.',
-  cfg:'Elegí el aspecto, el color de la app, los sonidos y la vibración. En Editar días cambiás los nombres, el día de la semana de cada uno y el orden (arrastrando las tres barras). Exportá una copia de seguridad cifrada en un archivo .txt. Con el bloqueo, la app se cierra con llave al salir por más de 30 segundos. En Restablecimiento podés borrar las personas, el historial o todos los datos; conviene exportar un respaldo antes.'
+  cfg:'Elegí el aspecto, el color de la app, los sonidos y la vibración. En Editar días cambiás los nombres, el día de la semana de cada uno y el orden (arrastrando las tres barras). Exportá una copia de seguridad cifrada en un archivo .txt. Con el bloqueo, la app se cierra con llave al salir por más de 30 segundos. En Restablecimiento podés borrar las personas, el historial o todos los datos; conviene exportar un respaldo antes. En Planilla PDF subís la hoja del programa; también podés compartir un PDF desde otra app hacia Asignaciones. La copia automática guarda respaldos cifrados en una carpeta de tu Google Drive.'
 };
 const ICON_I = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7.8" r="1.4" fill="currentColor"/><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>';
 const ICON_G = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>';
@@ -272,10 +295,15 @@ const NAVI = {
   rem:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 20.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   his:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3.2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 };
+const ICON_RETRY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_COPY = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8.5" y="8.5" width="12" height="12.5" rx="2.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 8.5V5.2a1.7 1.7 0 0 0-1.7-1.7H5.2a1.7 1.7 0 0 0-1.7 1.7v9.6a1.7 1.7 0 0 0 1.7 1.7h3.3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const ICON_PDF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 2v5h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><text x="11.6" y="17.4" text-anchor="middle" font-size="6.4" font-weight="700" font-family="Arial,sans-serif" fill="currentColor">PDF</text></svg>';
+const ICON_UPL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M14 3v5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 17.5v-6.5M9.2 13.6L12 10.8l2.8 2.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_DRIVE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.01 1.485c-2.082 0-3.754.02-3.743.047.01.02 1.708 3.001 3.774 6.62l3.76 6.574h3.76c2.081 0 3.753-.02 3.742-.047-.005-.02-1.708-3.001-3.775-6.62l-3.76-6.574zm-4.76 1.73a789.828 789.861 0 0 0-3.63 6.319L0 15.868l1.89 3.298 1.885 3.297 3.62-6.335 3.618-6.33-1.88-3.287C8.1 4.704 7.255 3.22 7.25 3.214zm2.259 12.653-.203.348c-.114.198-.96 1.672-1.88 3.287a423.93 423.93 0 0 1-1.698 2.97c-.01.026 3.24.042 7.222.042h7.244l1.796-3.157c.992-1.734 1.85-3.23 1.906-3.323l.104-.167h-7.249z"/></svg>';
 const ICON_MSG = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 10h44a5 5 0 0 1 5 5v27a5 5 0 0 1-5 5H31L19 57V47h-9a5 5 0 0 1-5-5V15a5 5 0 0 1 5-5z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M16 23h32M16 32h21" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
 const ICON_WA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 7.8c-.4.5-.6 1.2-.3 2 .6 1.8 2.5 3.8 4.4 4.6.9.4 1.6.1 2.1-.4l.5-.7a.5.5 0 0 0-.1-.7l-1.5-1a.5.5 0 0 0-.7.1l-.5.6c-.9-.4-1.9-1.4-2.3-2.3l.6-.5a.5.5 0 0 0 .1-.7l-1-1.5a.5.5 0 0 0-.8 0z" fill="currentColor"/></svg>';
 const LOGO = '<svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" fill="var(--acc)"/><path fill="var(--on)" d="M22 24h12v12H22zM42 28h32v4H42zM22 42h12v12H22zM42 46h32v4H42zM22 60h12v12H22zM42 64h20v4H42z"/></svg>';
-const VER = (() => { try { return A ? A.version() : '1.4.0'; } catch (e) { return '1.4.0'; } })();
+const VER = (() => { try { return A ? A.version() : '1.5.0'; } catch (e) { return '1.5.0'; } })();
 
 function pickDay() {
   if (S.smart) {
@@ -430,7 +458,7 @@ function vMsg() {
   h += '<div class="bub">' + (S.hdr ? `<div class="hd">${esc(S.hdr)}</div>` : '') + groups().map(g => `<div class="slot"><small>${esc(rn(g.r))}</small><div class="nms">${g.ps.map((x, k) => `<button class="nm ${x.p ? '' : 'void'}" data-a="swap" data-i="${x.i}" ${sent ? 'disabled' : ''}>${x.p ? esc(pn(x.p)) : 'Sin asignar'}${k < g.ps.length - 1 ? ',' : ''}</button>`).join('')}</div></div>`).join('') + (S.cls ? `<div class="cl">${esc(S.cls)}</div>` : '') + '</div>';
   if (draft.some(s => !s.p)) h += '<p class="warn">Hay puestos sin asignar.</p>';
   if (sent) h += '<p class="cnt okn">\u2713 Registrado en el historial. Tocá Regenerar para armar otro.</p>';
-  h += `<div class="stack"><div class="row" style="margin:0"><button data-a="gen">Regenerar</button><button data-a="copy">Copiar</button></div><button class="wa" data-a="wa">${ICON_WA}<span>Enviar por WhatsApp</span></button><button data-a="share">Compartir</button></div>`;
+  h += `<div class="stack"><button class="wa" data-a="wa">${ICON_WA}<span>Enviar por WhatsApp</span></button><div class="row" style="margin:0"><button class="ib" data-a="gen">${ICON_RETRY}<span>Regenerar</span></button><button class="ib" data-a="copy">${ICON_COPY}<span>Copiar</span></button></div><button data-a="share">Compartir</button></div>`;
   return h;
 }
 function vPpl() {
@@ -475,6 +503,8 @@ function vCfg() {
 <div class="card"><label>Nombre de usuario<input data-a="user" value="${esc(S.user)}"></label></div>
 <div class="card">${sw(L.on, 'lock', 'Bloqueo con patrón')}<p class="leg">Usa el bloqueo de tu teléfono si tiene uno; si no, creás un patrón dentro de la app.</p>${L.on && L.mode === 'app' ? '<button data-a="lockchg" style="width:100%;margin-top:10px">Cambiar patrón</button>' : ''}</div>
 <div class="card"><h2>Copia de seguridad</h2><div class="row"><button data-a="exp">Exportar</button><button data-a="imp">Importar</button></div><p class="leg">Las copias se guardan cifradas: solo esta app puede leerlas.</p><input type="file" id="bf" data-a="bf" accept=".txt,text/plain" hidden></div>
+<div class="card"><h2>Planilla PDF</h2><button class="upl" data-a="pdfup">${ICON_UPL}<span>${pdfInfo.has ? 'Subir nueva planilla' : 'Subir planilla PDF'}</span></button><div class="exp ${pdfInfo.has ? 'open' : ''}"><div class="inner"><div class="pdfx"><p class="leg" style="margin:0 2px 10px">${esc(pdfInfo.name || '')}</p><button class="dng" data-a="pdfdel">Borrar PDF</button></div></div></div></div>
+<div class="card"><div class="line"><span class="drv">${ICON_DRIVE}<span>Copia de seguridad automática</span></span><button class="sw ${S.cloud.on ? 'on' : ''}" role="switch" aria-checked="${S.cloud.on}" aria-label="Copia de seguridad automática" data-a="cloud"><i></i></button></div><div class="exp ${S.cloud.on ? 'open' : ''}"><div class="inner"><div class="cloudbox"><div class="line"><span>Hacer una copia...</span><select class="cfr" data-a="cfreq" aria-label="Frecuencia">${[['day', 'Diaria'], ['week', 'Semanal'], ['month', 'Mensual']].map(o => `<option value="${o[0]}" ${S.cloud.freq === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select></div><p class="leg">${esc(cloudStat())}</p><button data-a="cnow" style="width:100%;margin-top:10px">Copiar ahora</button></div></div></div></div>
 <div class="card about"><div>Versión ${esc(VER)}</div><div>Idea de Esteban Gómez</div><div>Programado con Claude</div></div>`;
 }
 function overlay() {
@@ -486,7 +516,8 @@ function overlay() {
     h:'¿Seguro que desea borrar este mensaje del historial? Esta acción no se puede deshacer.',
     xp:'¿Seguro que desea borrar a todas las personas?' + NR,
     xh:'¿Seguro que desea borrar todo el historial? El orden de rotación también vuelve a empezar.' + NR,
-    xa:'¿Seguro que desea restablecer la app? Se borrarán todos los datos y quedará como recién instalada.' + NR
+    xa:'¿Seguro que desea restablecer la app? Se borrarán todos los datos y quedará como recién instalada.' + NR,
+    pdf:'¿Seguro que desea borrar este PDF? Esta acción no se puede deshacer.'
   };
   if (dlg) return `<div class="ov${o}" data-a="noop"><div class="dlg"><p>${MSG[dlg.k]}</p><div class="row"><button data-a="dno">NO</button><button class="pri" data-a="dyes">SÍ</button></div></div></div>`;
   if (sheet && sheet.txt !== undefined) return `<div class="ov bt${o}" data-a="close"><div class="sheet" data-a="noop"><h2>Copiá el mensaje</h2><textarea rows="10" readonly>${esc(sheet.txt)}</textarea><button data-a="close">Cerrar</button></div></div>`;
@@ -547,9 +578,10 @@ function render() {
   if (!S.user) { patch(welcome()); return; }
   if (!S.days.some(d => d.id === day)) day = S.days[0].id;
   const view = cfg ? vCfg : {msg:vMsg, ppl:vPpl, rol:vRol, rem:vRem, his:vHis}[tab];
-  patch(`<header>${cfg ? '<button data-a="back" aria-label="Volver">←</button>' : ''}<h1>${cfg ? 'Configuración' : TT[tab]}</h1><button data-a="info" class="${info ? 'on' : ''}" aria-label="Información">${ICON_I}</button><button data-a="cfg" class="${cfg ? 'on' : ''}" aria-label="Configuración">${ICON_G}</button></header><main id="main"><div class="exp ${info ? 'open' : ''}"><div class="inner"><div class="info">${INFO[cfg ? 'cfg' : tab]}</div></div></div>${view()}</main>${cfg ? '' : NAV()}${overlay()}`);
+  patch(`<header>${cfg ? '<button data-a="back" aria-label="Volver">←</button>' : ''}<h1>${cfg ? 'Configuración' : TT[tab]}</h1><button data-a="info" class="${info ? 'on' : ''}" aria-label="Información">${ICON_I}</button>${(!cfg && tab === 'msg') ? `<button data-a="pdf" class="${pdfInfo.has ? '' : 'dim'}" aria-label="Planilla PDF" title="Planilla PDF">${ICON_PDF}</button>` : ''}<button data-a="cfg" class="${cfg ? 'on' : ''}" aria-label="Configuración">${ICON_G}</button></header><main id="main"><div class="exp ${info ? 'open' : ''}"><div class="inner"><div class="info">${INFO[cfg ? 'cfg' : tab]}</div></div></div>${view()}</main>${cfg ? '' : NAV()}${overlay()}`);
   if (resetScroll) { const m = $('#main'); if (m) m.scrollTop = 0; resetScroll = false; }
   fx.forEach(k => re(FXM[k][0], FXM[k][1])); fx = [];
+  if (pdfNote && !locked && !(pl && pl.kind !== 'unlock') && S.user) { pdfNote = false; toast('\u2713 El PDF se ha subido con éxito'); }
 }
 function closeOv() {
   if (closing) return;
@@ -671,16 +703,185 @@ async function importText(s) {
     if (raw.charAt(0) !== '{') raw = await unseal(raw);   /* acepta respaldos cifrados y los antiguos en texto plano */
     const o = JSON.parse(raw);
     if (!o || !Array.isArray(o.roles) || !Array.isArray(o.people) || !Array.isArray(o.hist)) throw 0;
-    const keep = {user:S.user, theme:S.theme, accent:S.accent, anim:S.anim, snd:S.snd, hap:S.hap, smart:S.smart, rem:S.rem};
+    const keep = {user:S.user, theme:S.theme, accent:S.accent, anim:S.anim, snd:S.snd, hap:S.hap, smart:S.smart, rem:S.rem, cloud:S.cloud};
     S = Object.assign(clone(DEF), o);
     S.v = o.v || 1;
-    Object.assign(S, {user:keep.user, theme:keep.theme, accent:keep.accent, anim:keep.anim, snd:keep.snd, hap:keep.hap, smart:keep.smart});
+    Object.assign(S, {user:keep.user, theme:keep.theme, accent:keep.accent, anim:keep.anim, snd:keep.snd, hap:keep.hap, smart:keep.smart, cloud:keep.cloud});
     S.rem = Array.isArray(o.rem) ? o.rem : keep.rem;
     migrate();
     draft = null; sent = false; day = pickDay(); save(); syncRem(); applyTheme(); render();
     toast('\u2713 Respaldo cargado con éxito');
   } catch (x) { toast('El archivo no es una copia válida'); }
 }
+
+/* ---- planilla PDF ---- */
+let pdfInfo = {has:false, name:'', t:0, fresh:false}, pdfOpen = false, pdfDoc = null, pdfNote = false, lastShare = 0;
+let pvZoom = 1, pvPages = [], pvBusy = false, pvDirty = false, pvTimer = null, pvScroll = null, pvJs = null;
+function refreshPdf() { try { if (A) pdfInfo = Object.assign({has:false, name:'', t:0, fresh:false}, JSON.parse(A.pdfInfo())); } catch (e) {} }
+function loadPdfJs() {
+  if (window.pdfjsLib) return Promise.resolve();
+  if (pvJs) return pvJs;
+  pvJs = new Promise((res, rej) => {
+    const sc = document.createElement('script');
+    sc.src = new URL('pdfjs/pdf.min.js', location.href).href;
+    sc.onload = () => { try { pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs/pdf.worker.min.js', location.href).href; res(); } catch (e) { rej(e); } };
+    sc.onerror = () => { pvJs = null; rej(new Error('js')); };
+    document.head.appendChild(sc);
+  });
+  return pvJs;
+}
+async function openPdf() {
+  refreshPdf();
+  if (!pdfInfo.has) { toast('No hay ninguna planilla PDF. Subila desde Configuración.'); return; }
+  const pv = $('#pv');
+  pdfOpen = true; pvZoom = 1; pvPages = [];
+  pv.hidden = false;
+  pv.innerHTML = `<div class="pvh"><button data-a="pvclose" aria-label="Cerrar">←</button><span>${esc(pdfInfo.name || 'Planilla PDF')}</span><button data-a="pvz" data-v="-" aria-label="Alejar">−</button><button data-a="pvz" data-v="+" aria-label="Acercar">+</button></div><div class="pvb" id="pvb"><div class="pvw" id="pvw"><p class="pvm">Cargando…</p></div></div>`;
+  const b = $('#pvb'); let pz = null;
+  const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  b.addEventListener('touchstart', e => { if (e.touches.length === 2) pz = {d:dist(e.touches), z:pvZoom}; }, {passive:true});
+  b.addEventListener('touchmove', e => {
+    if (pz && e.touches.length === 2) {
+      e.preventDefault();
+      const r = b.getBoundingClientRect();
+      pvSetZoom(pz.z * dist(e.touches) / pz.d, (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left, (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top);
+    }
+  }, {passive:false});
+  b.addEventListener('touchend', e => { if (e.touches.length < 2) pz = null; }, {passive:true});
+  b.addEventListener('scroll', () => { clearTimeout(pvScroll); pvScroll = setTimeout(pvEnsure, 120); }, {passive:true});
+  try {
+    await loadPdfJs();
+    const url = new URL('/pdf/planilla.pdf?v=' + pdfInfo.t, location.href).href;
+    const doc = await pdfjsLib.getDocument({url}).promise;
+    if (!pdfOpen) { try { doc.destroy(); } catch (e) {} return; }
+    pdfDoc = doc;
+    const w = $('#pvw'); w.innerHTML = '';
+    for (let i = 1; i <= doc.numPages; i++) {
+      const page = await doc.getPage(i), v = page.getViewport({scale:1});
+      const d = document.createElement('div');
+      d.className = 'pg'; d.style.paddingBottom = (v.height / v.width * 100) + '%';
+      w.appendChild(d); pvPages.push({page, d, v, cv:null, px:0});
+      if (!pdfOpen) return;
+    }
+    pvEnsure();
+  } catch (e) { const w = $('#pvw'); if (pdfOpen && w) w.innerHTML = '<p class="pvm">No se pudo abrir el PDF.</p>'; }
+}
+function closePdf() {
+  if (!pdfOpen && !pdfDoc) return;
+  pdfOpen = false; pvPages = [];
+  try { if (pdfDoc) pdfDoc.destroy(); } catch (e) {}
+  pdfDoc = null;
+  const pv = $('#pv'); if (pv) { pv.hidden = true; pv.innerHTML = ''; }
+}
+function pvSetZoom(z, fx, fy) {
+  const b = $('#pvb'), w = $('#pvw'); if (!b || !w) return;
+  z = Math.max(1, Math.min(4, z));
+  const oldW = w.offsetWidth || 1, oldH = w.offsetHeight || 1;
+  const cx = b.scrollLeft + fx, cy = b.scrollTop + fy;
+  pvZoom = z; w.style.width = (z * 100) + '%';
+  b.scrollLeft = cx * (w.offsetWidth / oldW) - fx;
+  b.scrollTop = cy * (w.offsetHeight / oldH) - fy;
+  clearTimeout(pvTimer); pvTimer = setTimeout(pvEnsure, 220);
+}
+/* Dibuja solo las páginas cercanas a la pantalla y a la nitidez del zoom actual (ahorra memoria). */
+async function pvEnsure() {
+  if (pvBusy) { pvDirty = true; return; }
+  pvBusy = true;
+  try {
+    do {
+      pvDirty = false;
+      const b = $('#pvb'), w = $('#pvw'); if (!b || !w || !pdfOpen) break;
+      const cssW = w.clientWidth || 360, dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      const top = b.scrollTop, bot = top + b.clientHeight, H = b.clientHeight || 600;
+      for (const p of pvPages) {
+        const y0 = p.d.offsetTop, y1 = y0 + p.d.offsetHeight;
+        if (!(y1 > top - H && y0 < bot + H)) { if (p.cv) { p.cv.remove(); p.cv = null; p.px = 0; } continue; }
+        const px = Math.min(Math.round(cssW * dpr), 2800);
+        if (p.cv && Math.abs(p.px - px) < 4) continue;
+        const vp = p.page.getViewport({scale:px / p.v.width});
+        const cv = document.createElement('canvas');
+        cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+        await p.page.render({canvasContext:cv.getContext('2d'), viewport:vp}).promise;
+        if (!pdfOpen) return;
+        if (p.cv) p.cv.remove();
+        p.d.appendChild(cv); p.cv = cv; p.px = px;
+        if (pvDirty) break;
+      }
+    } while (pvDirty && pdfOpen);
+  } catch (e) {} finally { pvBusy = false; }
+}
+window.onPdfSaved = ok => {
+  refreshPdf();
+  toast(ok ? '\u2713 PDF subido con éxito' : 'No se pudo subir: el archivo no es un PDF válido');
+  render();
+};
+window.onPdfShared = ok => {
+  refreshPdf();
+  try { if (A) A.pdfAck(); } catch (e) {}
+  if (!ok) { if (Date.now() - lastShare > 1500) toast('No se pudo recibir el archivo: no es un PDF válido'); return; }
+  if (Date.now() - lastShare < 1500) return;
+  lastShare = Date.now();
+  closePdf();
+  tab = 'msg'; cfg = false; info = false; open = null; menu = null; dlg = null; sheet = null;
+  pdfNote = true; fx = ['main', 'title'];
+  render();
+};
+
+/* ---- copia de seguridad automática en Google Drive ---- */
+let snapT;
+function queueSnap(now) {
+  if (!(A && S && S.cloud && S.cloud.on)) return;
+  clearTimeout(snapT); snapT = setTimeout(pushSnap, now ? 0 : 2500);
+}
+async function pushSnap() {
+  try { if (A && window.crypto && crypto.subtle) A.setSnapshot(await seal(JSON.stringify(S))); } catch (e) {}
+}
+function cloudStat() {
+  let st = {last:0, err:'', folder:''};
+  try { if (A) st = Object.assign(st, JSON.parse(A.backupStatus())); } catch (e) {}
+  const per = {day:1, week:7, month:30}[S.cloud.freq] || 30;
+  const nxt = (st.last || S.cloud.since || Date.now()) + per * 86400000;
+  const fd = ts => new Date(ts).toLocaleDateString('es-AR', {day:'numeric', month:'short'});
+  let t = st.last ? 'Última copia: ' + new Date(st.last).toLocaleString('es-AR', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}) + '.' : 'Todavía no se hizo ninguna copia.';
+  t += ' Próxima: aprox. ' + fd(nxt) + '.';
+  if (st.folder) t += ' Carpeta: ' + st.folder + '.';
+  if (st.err) t += ' Aviso: ' + st.err + '.';
+  return t;
+}
+function cloudLost() {
+  S.cloud.on = false; save();
+  toast('Se perdió la conexión con Google Drive. La copia automática se desactivó.');
+  render();
+}
+function checkCloud() {
+  if (!A || !S.cloud.on) return;
+  try { if (JSON.parse(A.backupStatus()).lost) cloudLost(); } catch (e) {}
+}
+async function cloudNow() {
+  if (!A) { toast('Disponible solo en la app para Android'); return; }
+  toast('Guardando copia…');
+  await pushSnap();
+  try { A.backupNow(); } catch (e) { toast('No se pudo guardar la copia'); }
+}
+window.onBackupFolder = (ok, why, name) => {
+  if (!ok) {
+    S.cloud.on = false; save();
+    toast(why === 'notdrive' ? 'La carpeta elegida no es de Google Drive. La copia automática quedó desactivada.' : 'No se conectó ninguna cuenta de Google. La copia automática quedó desactivada.');
+    render(); return;
+  }
+  S.cloud = {on:true, freq:(S.cloud && S.cloud.freq) || 'month', since:Date.now(), folder:name};
+  save();
+  try { A.setBackupSchedule(S.cloud.freq); } catch (e) {}
+  pushSnap();
+  toast('\u2713 Copia automática activada');
+  render();
+};
+window.onBackupDone = r => {
+  if (r === 0) toast('\u2713 Copia guardada en Google Drive');
+  else if (r === 2) { cloudLost(); return; }
+  else toast('No se pudo guardar la copia. Se va a reintentar sola.');
+  render();
+};
 
 /* ---- bloqueo con patrón ---- */
 const PX = i => 50 + 100 * (i % 3), PY = i => 50 + 100 * Math.floor(i / 3);
@@ -825,12 +1026,15 @@ function resetApp() {
   L = L0(); locked = false; pl = null;
   tab = 'msg'; cfg = false; info = false; open = null; menu = null; lastMenu = null; fRole = null;
   draft = null; sent = false; nnv = ''; add.clear(); dlg = null; sheet = null; day = pickDay();
+  try { if (A) { A.clearBackup(); A.pdfDelete(); } } catch (e) {}
+  pdfInfo = {has:false, name:'', t:0, fresh:false}; closePdf();
   syncRem(); applyTheme();
 }
 window.onSaved = ok => toast(ok ? '\u2713 Respaldo exportado con éxito' : 'No se pudo guardar el archivo');
 window.onFilePicked = t => { if (t == null) toast('No se pudo leer el archivo'); else importText(t); };
 window.applyTheme = applyTheme;
 window.onBack = () => {
+  if (pdfOpen) { closePdf(); return true; }
   if (pl && pl.kind !== 'unlock') { pl = null; render(); return true; }
   if (locked) return false;
   if (dlg || sheet) { closeOv(); return true; }
@@ -841,13 +1045,14 @@ window.onBack = () => {
   return false;
 };
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') { hiddenAt = Date.now(); return; }
+  if (document.visibilityState === 'hidden') { hiddenAt = Date.now(); queueSnap(true); return; }
   if (L.on && !authing && !locked && hiddenAt && Date.now() - hiddenAt > 30000) {
-    hiddenAt = 0; locked = true; dlg = null; sheet = null; pl = L.mode === 'app' ? {kind:'unlock', msg:'', err:false} : null;
+    hiddenAt = 0; locked = true; dlg = null; sheet = null; closePdf(); pl = L.mode === 'app' ? {kind:'unlock', msg:'', err:false} : null;
     render(); if (L.mode === 'device') promptDevice();
     return;
   }
   hiddenAt = 0;
+  refreshPdf(); checkCloud();
   if (S.user && !locked && !pl && !draft && !dlg && !sheet) { day = pickDay(); render(); }
 });
 
@@ -913,6 +1118,7 @@ document.addEventListener('click', e => {
   else if (a === 'rsa') dlg = {k:'xa'};
   else if (a === 'dyes') {
     const k = dlg.k;
+    if (k === 'pdf') { try { if (A) A.pdfDelete(); } catch (e) {} refreshPdf(); closePdf(); toast('\u2713 PDF borrado'); closeOv(); return; }
     if (k === 'h') { S.hist = S.hist.filter(e => String(e.t) !== String(dlg.id)); draft = null; sent = false; save(); toast('\u2713 Mensaje borrado'); closeOv(); return; }
     if (k === 'xp') { S.people = []; S.last = {}; S.any = {}; open = null; fRole = null; draft = null; sent = false; save(); toast('\u2713 Personas borradas'); closeOv(); return; }
     if (k === 'xh') { S.hist = []; S.last = {}; S.any = {}; draft = null; sent = false; save(); toast('\u2713 Historial borrado'); closeOv(); return; }
@@ -934,6 +1140,17 @@ document.addEventListener('click', e => {
   else if (a === 'snd') { S.snd = !S.snd; save(); if (S.snd) tap('ok'); }
   else if (a === 'hap') { S.hap = !S.hap; save(); if (S.hap) tap('ok'); }
   else if (a === 'smart') { S.smart = !S.smart; save(); if (S.smart) day = pickDay(); }
+  else if (a === 'pdf') { openPdf(); return; }
+  else if (a === 'pvclose') { closePdf(); return; }
+  else if (a === 'pvz') { const bb = $('#pvb'); if (bb) pvSetZoom(pvZoom * (v === '+' ? 1.4 : 1 / 1.4), bb.clientWidth / 2, bb.clientHeight / 2); return; }
+  else if (a === 'pdfup') { if (A) A.pickPdf(); else toast('Disponible solo en la app para Android'); return; }
+  else if (a === 'pdfdel') dlg = {k:'pdf'};
+  else if (a === 'cloud') {
+    if (S.cloud.on) { S.cloud.on = false; save(); try { if (A) A.clearBackup(); } catch (e) {} toast('Copia automática desactivada'); }
+    else if (A) { try { A.pickBackupFolder(); } catch (e) { toast('No se pudo abrir el selector de carpetas'); } return; }
+    else { toast('Disponible solo en la app para Android'); return; }
+  }
+  else if (a === 'cnow') { cloudNow(); return; }
   else if (a === 'lock') { if (L.on) disableLock(); else enableLock(); return; }
   else if (a === 'lockchg') { verifyThen(() => { pl = {kind:'new1', msg:'', err:false}; render(); }); return; }
   else if (a === 'unlock') { promptDevice(); return; }
@@ -951,6 +1168,11 @@ document.addEventListener('change', e => {
   else if (a === 'rday' && r) { r.d = t.value; draft = null; }
   else if (a === 'dname' && dd) { dd.name = t.value.trim() || dd.name; t.value = dd.name; }
   else if (a === 'dwd' && dd) dd.wd = +t.value;
+  else if (a === 'cfreq') {
+    S.cloud.freq = t.value; S.cloud.since = Date.now(); save();
+    try { if (A) A.setBackupSchedule(S.cloud.freq); } catch (e) {}
+    toast('\u2713 Copia ' + ({day:'diaria', week:'semanal', month:'mensual'}[S.cloud.freq] || '')); render(); return;
+  }
   else if (a === 'hdr') S.hdr = t.value.trim();
   else if (a === 'cls') S.cls = t.value.trim();
   else if (a === 'rtm') { const m = S.rem.find(x => x.id === t.dataset.id); if (m) { m.time = t.value; save(); syncRem(); render(); } return; }
@@ -962,10 +1184,13 @@ document.addEventListener('change', e => {
   save();
 });
 
+refreshPdf();
 applyTheme();
 render();
 syncRem();
 if (locked && L.mode === 'device') promptDevice();
+if (pdfInfo.fresh) window.onPdfShared(true);
+checkCloud();
 </script>
 </body>
 </html>

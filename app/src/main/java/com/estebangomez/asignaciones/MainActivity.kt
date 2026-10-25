@@ -24,9 +24,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.content.IntentCompat
 import androidx.core.view.WindowCompat
 import androidx.webkit.WebViewAssetLoader
 import org.json.JSONObject
+import java.io.File
 
 class MainActivity : ComponentActivity() {
 
@@ -62,6 +64,38 @@ class MainActivity : ComponentActivity() {
     private val permLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
+    private val folderLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
+            val uri = r.data?.data
+            if (r.resultCode != RESULT_OK || uri == null) {
+                js("window.onBackupFolder&&window.onBackupFolder(false,'cancel','')")
+            } else if (uri.authority?.startsWith("com.google.android.apps.docs") != true) {
+                js("window.onBackupFolder&&window.onBackupFolder(false,'notdrive','')")
+            } else {
+                try {
+                    contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    )
+                    val name = Backup.folderName(this, uri)
+                    Backup.setFolder(this, uri, name)
+                    js("window.onBackupFolder&&window.onBackupFolder(true,'ok',${JSONObject.quote(name)})")
+                } catch (e: Exception) {
+                    js("window.onBackupFolder&&window.onBackupFolder(false,'error','')")
+                }
+            }
+        }
+
+    private val pdfLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) {
+                Thread {
+                    val ok = PdfStore.save(this, uri, false)
+                    js("window.onPdfSaved&&window.onPdfSaved($ok)")
+                }.start()
+            }
+        }
+
     private val authLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
             val ok = r.resultCode == RESULT_OK
@@ -83,6 +117,7 @@ class MainActivity : ComponentActivity() {
 
         val loader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
+            .addPathHandler("/pdf/", WebViewAssetLoader.InternalStoragePathHandler(this, File(filesDir, "pdf").also { it.mkdirs() }))
             .build()
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
@@ -99,6 +134,7 @@ class MainActivity : ComponentActivity() {
         }
         web.addJavascriptInterface(Bridge(), "Android")
         web.loadUrl("https://appassets.androidplatform.net/assets/index.html")
+        handleShare(intent)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -107,6 +143,25 @@ class MainActivity : ComponentActivity() {
                 }
             }
         })
+    }
+
+    /** Recibe un PDF compartido desde otra app y reemplaza la planilla guardada. */
+    private fun handleShare(i: Intent?) {
+        if (i == null || i.action != Intent.ACTION_SEND) return
+        val type = i.type ?: return
+        if (!type.contains("pdf")) return
+        val uri = IntentCompat.getParcelableExtra(i, Intent.EXTRA_STREAM, Uri::class.java) ?: return
+        i.action = null
+        Thread {
+            val ok = PdfStore.save(this, uri, true)
+            js("window.onPdfShared&&window.onPdfShared($ok)")
+        }.start()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleShare(intent)
     }
 
     override fun onResume() {
@@ -164,6 +219,69 @@ class MainActivity : ComponentActivity() {
                 else null
                 if (i == null) js("window.onAuth&&window.onAuth('none')") else authLauncher.launch(i)
             }
+        }
+
+        @JavascriptInterface
+        fun pickBackupFolder() {
+            runOnUiThread {
+                try {
+                    folderLauncher.launch(
+                        Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).addFlags(
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                                Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
+                        )
+                    )
+                } catch (e: Exception) {
+                    js("window.onBackupFolder&&window.onBackupFolder(false,'error','')")
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun setSnapshot(text: String) {
+            try {
+                Backup.saveSnapshot(this@MainActivity, text)
+            } catch (e: Exception) {
+            }
+        }
+
+        @JavascriptInterface
+        fun setBackupSchedule(freq: String) {
+            Backup.schedule(this@MainActivity, freq)
+        }
+
+        @JavascriptInterface
+        fun clearBackup() {
+            Backup.clear(this@MainActivity)
+        }
+
+        @JavascriptInterface
+        fun backupStatus(): String = Backup.status(this@MainActivity)
+
+        @JavascriptInterface
+        fun backupNow() {
+            Thread {
+                val r = Backup.run(this@MainActivity)
+                js("window.onBackupDone&&window.onBackupDone($r)")
+            }.start()
+        }
+
+        @JavascriptInterface
+        fun pdfInfo(): String = PdfStore.info(this@MainActivity)
+
+        @JavascriptInterface
+        fun pickPdf() {
+            runOnUiThread { pdfLauncher.launch(arrayOf("application/pdf")) }
+        }
+
+        @JavascriptInterface
+        fun pdfDelete() {
+            PdfStore.delete(this@MainActivity)
+        }
+
+        @JavascriptInterface
+        fun pdfAck() {
+            PdfStore.ack(this@MainActivity)
         }
 
         @JavascriptInterface
