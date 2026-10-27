@@ -22,11 +22,14 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
 import androidx.core.view.WindowCompat
 import androidx.webkit.WebViewAssetLoader
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.common.api.ApiException
 import org.json.JSONObject
 import java.io.File
 
@@ -64,24 +67,17 @@ class MainActivity : ComponentActivity() {
     private val permLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
-    private val folderLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
-            val uri = r.data?.data
-            if (r.resultCode != RESULT_OK || uri == null) {
-                js("window.onBackupFolder&&window.onBackupFolder(false,'cancel','')")
-            } else if (uri.authority?.startsWith("com.google.android.apps.docs") != true) {
-                js("window.onBackupFolder&&window.onBackupFolder(false,'notdrive','')")
+    /** Pantalla de permiso de Google (solo la primera vez que se conecta una cuenta). */
+    private val consentLauncher =
+        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { res ->
+            if (res.resultCode != RESULT_OK) {
+                jsConnect(false, "cancel", "")
             } else {
                 try {
-                    contentResolver.takePersistableUriPermission(
-                        uri,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    )
-                    val name = Backup.folderName(this, uri)
-                    Backup.setFolder(this, uri, name)
-                    js("window.onBackupFolder&&window.onBackupFolder(true,'ok',${JSONObject.quote(name)})")
+                    val r = Identity.getAuthorizationClient(this).getAuthorizationResultFromIntent(res.data ?: Intent())
+                    finishConnect(r.accessToken)
                 } catch (e: Exception) {
-                    js("window.onBackupFolder&&window.onBackupFolder(false,'error','')")
+                    jsConnect(false, whyOf(e), codeOf(e))
                 }
             }
         }
@@ -101,6 +97,57 @@ class MainActivity : ComponentActivity() {
             val ok = r.resultCode == RESULT_OK
             js("window.onAuth&&window.onAuth($ok)")
         }
+
+    private fun codeOf(e: Exception): String = (e as? ApiException)?.statusCode?.toString() ?: ""
+
+    private fun whyOf(e: Exception): String = when ((e as? ApiException)?.statusCode) {
+        10 -> "config"
+        7 -> "nonet"
+        1, 2, 16, 17 -> "nogms"
+        else -> "error"
+    }
+
+    private fun jsConnect(ok: Boolean, why: String, extra: String) {
+        js("window.onDriveConnect&&window.onDriveConnect($ok,${JSONObject.quote(why)},${JSONObject.quote(extra)})")
+    }
+
+    private fun startConnect() {
+        Identity.getAuthorizationClient(this).authorize(Drive.request())
+            .addOnSuccessListener { r ->
+                if (r.hasResolution()) {
+                    val pi = r.pendingIntent
+                    if (pi == null) jsConnect(false, "error", "")
+                    else consentLauncher.launch(IntentSenderRequest.Builder(pi).build())
+                } else {
+                    finishConnect(r.accessToken)
+                }
+            }
+            .addOnFailureListener { e -> jsConnect(false, whyOf(e), codeOf(e)) }
+    }
+
+    /** Crea (o encuentra) la carpeta en Drive y avisa si ya hay copias de una conexión anterior. */
+    private fun finishConnect(token: String?) {
+        if (token == null) {
+            jsConnect(false, "error", "")
+            return
+        }
+        Thread {
+            try {
+                val folder = Drive.folderId(this, token)
+                val backups = Drive.list(token, folder)
+                val email = Drive.email(token)
+                Backup.markConnected(this, email)
+                val info = JSONObject().put("email", email).put("backups", backups)
+                jsConnect(true, "ok", info.toString())
+            } catch (e: Drive.Http) {
+                jsConnect(false, if (e.code == 403) "api" else "error", e.code.toString())
+            } catch (e: java.io.IOException) {
+                jsConnect(false, "nonet", "")
+            } catch (e: Exception) {
+                jsConnect(false, "error", "")
+            }
+        }.start()
+    }
 
     private fun js(code: String) {
         runOnUiThread { web.evaluateJavascript(code, null) }
@@ -222,19 +269,26 @@ class MainActivity : ComponentActivity() {
         }
 
         @JavascriptInterface
-        fun pickBackupFolder() {
+        fun driveConnect() {
             runOnUiThread {
                 try {
-                    folderLauncher.launch(
-                        Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).addFlags(
-                            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
-                                Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
-                        )
-                    )
+                    startConnect()
                 } catch (e: Exception) {
-                    js("window.onBackupFolder&&window.onBackupFolder(false,'error','')")
+                    jsConnect(false, "nogms", "")
                 }
             }
+        }
+
+        @JavascriptInterface
+        fun driveRestore(id: String) {
+            Thread {
+                try {
+                    val text = Drive.download(Drive.silentToken(this@MainActivity), id)
+                    js("window.onDriveRestored&&window.onDriveRestored(true,${JSONObject.quote(text)})")
+                } catch (e: Exception) {
+                    js("window.onDriveRestored&&window.onDriveRestored(false,'')")
+                }
+            }.start()
         }
 
         @JavascriptInterface
@@ -340,6 +394,13 @@ class MainActivity : ComponentActivity() {
         fun setReminders(json: String, user: String) {
             Reminders.save(this@MainActivity, json, user)
             runOnUiThread { ensurePermissions() }
+        }
+
+        @JavascriptInterface
+        fun setPdfDue(at: String) {
+            val ms = at.toLongOrNull() ?: 0L
+            Reminders.setPdfDue(this@MainActivity, ms)
+            if (ms > 0L) runOnUiThread { ensurePermissions() }
         }
 
         @JavascriptInterface

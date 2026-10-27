@@ -89,7 +89,13 @@ label input,label textarea,label select{margin-top:4px;font-size:16px}
 .upl{display:flex;align-items:center;justify-content:center;gap:10px;width:100%}
 .upl svg{width:22px;height:22px}
 .pdfx{padding-top:10px}
-.pdfx button{width:100%}
+.pdfx .stack button{width:100%}
+.seg+.leg{margin:-6px 2px 12px}
+.sheet button small{display:block;font-size:12.5px;font-weight:400;opacity:.85}
+.sheet button.bz{color:var(--warn);background:rgba(220,38,38,.09);border-color:rgba(220,38,38,.38)}
+.dlg.wn{border-color:#E8710A}
+.dlg.wn h2{color:#E8710A;margin:0 0 8px}
+.dlg.wn .pri{background:#E8710A;border-color:#E8710A;color:#fff}
 .ib{display:flex;align-items:center;justify-content:center;gap:8px}
 .ib svg{width:24px;height:24px}
 header button.dim{opacity:.6}
@@ -183,7 +189,7 @@ header button.dim{opacity:.6}
 .ov.out .sheet{animation:down .17s forwards}
 .sheet button{display:block;width:100%;text-align:left;margin-top:8px}
 .sheet textarea{margin-top:8px}
-.toast{position:fixed;left:50%;bottom:84px;transform:translate(-50%,14px) scale(.96);background:var(--ink);color:var(--sur);padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s,transform .3s cubic-bezier(.2,.9,.3,1.1);z-index:9;max-width:90%;text-align:center}
+.toast{position:fixed;left:50%;bottom:84px;transform:translate(-50%,14px) scale(.96);width:max-content;background:var(--ink);color:var(--sur);padding:8px 14px;border-radius:14px;font-size:13px;line-height:1.3;opacity:0;pointer-events:none;transition:opacity .25s,transform .3s cubic-bezier(.2,.9,.3,1.1);z-index:9;max-width:min(94vw,480px);text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0) scale(1)}
 .wel{height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px;gap:18px;text-align:center}
 .wel svg{width:96px;height:96px;border-radius:22px;animation:pop .6s cubic-bezier(.2,.9,.3,1.2) backwards}
@@ -233,7 +239,7 @@ const DEF = {
   people: [], hist: [], last: {}, any: {},
   hdr: 'Asignaciones para hoy',
   cls: 'Si alguien no puede av\u00edseme y yo me encargo de buscar a otro, gracias \u{1F64B}\u200D\u2642\uFE0F',
-  user: '', theme: 'sys', accent: 'orange', anim: true, snd: true, hap: true, smart: false, day: '', sort: 'az', rem: [], cloud: {on:false, freq:'month', since:0, folder:''}, v: 2
+  user: '', theme: 'sys', accent: 'orange', anim: true, snd: true, hap: true, smart: false, day: '', sort: 'az', rem: [], cloud: {on:false, freq:'month', since:0, folder:''}, pdfAvoid: true, pdfRem: {on:true, time:'09:00'}, v: 2
 };
 const ACC = {orange:[24,92,40,62,'Naranja'], blue:[217,90,46,66,'Azul'], sky:[199,95,36,60,'Celeste'], red:[2,78,46,66,'Rojo'], green:[145,75,28,52,'Verde']};
 const ORDER = ['pre', 'lib', 'ata', 'pla', 'son', 'ext', 'int', 'mic'];
@@ -247,6 +253,10 @@ function migrate() {
   if (!Array.isArray(S.rem)) S.rem = [];
   if (!ACC[S.accent]) S.accent = 'orange';
   if (!S.cloud || typeof S.cloud !== 'object') S.cloud = clone(DEF.cloud);
+  if (typeof S.pdfAvoid !== 'boolean') S.pdfAvoid = true;
+  if (!S.pdfRem || typeof S.pdfRem !== 'object') S.pdfRem = clone(DEF.pdfRem);
+  S.pdfRem.on = S.pdfRem.on !== false;
+  if (!/^\d{2}:\d{2}$/.test(S.pdfRem.time || '')) S.pdfRem.time = '09:00';
   if ((S.v || 1) < 2) {
     const i = S.roles.find(r => r.id === 'int');
     if (i && i.name === 'Acomodador interior') i.name = 'Acomodador exterior';
@@ -273,12 +283,12 @@ const DN = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 const TT = {msg:'Mensaje', ppl:'Personas', rol:'Roles', rem:'Avisos', his:'Historial'};
 const SORTS = [['az','A-Z'], ['rec','Asignado recientemente'], ['old','Asignado hace mucho'], ['add','Agregado recientemente']];
 const INFO = {
-  msg:'El ícono PDF abre la planilla que subiste. Elegí el día, generá el mensaje y tocá un nombre para cambiarlo. Al copiar, enviar por WhatsApp o compartir, el mensaje queda registrado en el historial y los nombres cuentan como usados.',
+  msg:'El ícono PDF abre la planilla que subiste. Elegí el día, generá el mensaje y tocá un nombre para cambiarlo. Al copiar, enviar por WhatsApp o compartir, el mensaje queda registrado en el historial y los nombres cuentan como usados. Si subiste una planilla PDF, la app evita a quienes ya tienen asignación en esa semana; si igual elegís a alguien así, te pregunta antes (en rojo suave en la lista).',
   ppl:'Agregá una persona por línea y marcá qué roles puede cumplir. Tocá un nombre para editar sus roles o marcarlo como ausente. Usá Filtrar para ordenar y “Mostrar solo…” para ver quién cumple un rol.',
   rol:'Cada rol define cuántas personas lleva y en qué día se usa. Mantené apretado el ícono de tres barras y arrastralo para cambiar el orden en el mensaje. También podés editar el encabezado y la conclusión.',
-  rem:'Elegí los días y la hora en que querés recibir el aviso. Si no llegan, permití las notificaciones y quitá la restricción de batería para esta app.',
+  rem:'Elegí los días y la hora en que querés recibir el aviso. Si no llegan, permití las notificaciones y quitá la restricción de batería para esta app. El primer aviso te recuerda cambiar la planilla PDF el último día de su última semana.',
   his:'Acá quedan los mensajes que se copiaron, enviaron o compartieron. Tocá el cesto para borrar uno; borrarlo no cambia el orden de rotación.',
-  cfg:'Elegí el aspecto, el color de la app, los sonidos y la vibración. En Editar días cambiás los nombres, el día de la semana de cada uno y el orden (arrastrando las tres barras). Exportá una copia de seguridad cifrada en un archivo .txt. Con el bloqueo, la app se cierra con llave al salir por más de 30 segundos. En Restablecimiento podés borrar las personas, el historial o todos los datos; conviene exportar un respaldo antes. En Planilla PDF subís la hoja del programa; también podés compartir un PDF desde otra app hacia Asignaciones. La copia automática guarda respaldos cifrados en una carpeta de tu Google Drive.'
+  cfg:'Elegí el aspecto, el color de la app, los sonidos y la vibración. En Editar días cambiás los nombres, el día de la semana de cada uno y el orden (arrastrando las tres barras). Exportá una copia de seguridad cifrada en un archivo .txt. Con el bloqueo, la app se cierra con llave al salir por más de 30 segundos. En Restablecimiento podés borrar las personas, el historial o todos los datos; conviene exportar un respaldo antes. En Planilla PDF subís la hoja del programa (también podés compartir un PDF desde otra app hacia Asignaciones); la app lee los nombres para no repetirlos y con “Ver lo que leyó la app” comprobás que los leyó bien. La copia automática crea una carpeta “Asignaciones” en tu Google Drive y guarda ahí respaldos cifrados.'
 };
 const ICON_I = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7.8" r="1.4" fill="currentColor"/><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>';
 const ICON_G = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>';
@@ -303,7 +313,7 @@ const ICON_DRIVE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="curr
 const ICON_MSG = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 10h44a5 5 0 0 1 5 5v27a5 5 0 0 1-5 5H31L19 57V47h-9a5 5 0 0 1-5-5V15a5 5 0 0 1 5-5z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M16 23h32M16 32h21" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
 const ICON_WA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 7.8c-.4.5-.6 1.2-.3 2 .6 1.8 2.5 3.8 4.4 4.6.9.4 1.6.1 2.1-.4l.5-.7a.5.5 0 0 0-.1-.7l-1.5-1a.5.5 0 0 0-.7.1l-.5.6c-.9-.4-1.9-1.4-2.3-2.3l.6-.5a.5.5 0 0 0 .1-.7l-1-1.5a.5.5 0 0 0-.8 0z" fill="currentColor"/></svg>';
 const LOGO = '<svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" fill="var(--acc)"/><path fill="var(--on)" d="M22 24h12v12H22zM42 28h32v4H42zM22 42h12v12H22zM42 46h32v4H42zM22 60h12v12H22zM42 64h20v4H42z"/></svg>';
-const VER = (() => { try { return A ? A.version() : '1.5.0'; } catch (e) { return '1.5.0'; } })();
+const VER = (() => { try { return A ? A.version() : '1.7.0'; } catch (e) { return '1.7.0'; } })();
 
 function pickDay() {
   if (S.smart) {
@@ -369,19 +379,20 @@ function toast(m) {
   const t = $('#toast');
   t.textContent = m; t.classList.add('on');
   if (m.charAt(0) === '\u2713') tap('ok');
-  clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 3200);
+  clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), Math.min(7000, 2400 + m.length * 40));
 }
 
 /* ---------- lógica de asignaciones ---------- */
 function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-function elig(r, used) {
+function elig(r, used, all) {
   return shuffle(S.people)
-    .filter(p => !p.off && p.r.includes(r.id) && !used.has(p.id))
+    .filter(p => !p.off && p.r.includes(r.id) && !used.has(p.id) && (all || !bz.has(p.id)))
     .sort((a, b) => (S.last[a.id + r.id] || 0) - (S.last[b.id + r.id] || 0) || (S.any[a.id] || 0) - (S.any[b.id] || 0));
 }
 function gen() {
+  bz = busyMap();
   const rs = S.roles.filter(r => r.d === 'all' || r.d === day);
-  const pool = r => S.people.filter(p => !p.off && p.r.includes(r.id)).length;
+  const pool = r => S.people.filter(p => !p.off && p.r.includes(r.id) && !bz.has(p.id)).length;
   const used = new Set(), res = {}, now = Date.now(), w = {};
   /* Primero los roles con menos candidatos; a igualdad, primero el rol cuyo candidato lleva más tiempo esperando. */
   rs.forEach(r => { const c = elig(r, new Set())[0]; w[r.id] = c ? now - (S.last[c.id + r.id] || 0) : 0; });
@@ -449,14 +460,14 @@ function daySeg() {
   return segHTML(S.days.map(d => [d.id, esc(d.name.length > mc ? d.name.slice(0, 3) : d.name)]), day, 'day');
 }
 function vMsg() {
-  let h = daySeg();
+  let h = daySeg() + pdfLine();
   if (!draft) {
     h += `<div class="ghost">${ICON_MSG}<div>${S.people.length ? 'Haz click en \'Generar\' para comenzar' : 'Agrega personas para comenzar'}</div></div>`;
     if (S.people.length) h += '<button class="pri" data-a="gen">Generar</button>';
     return h;
   }
   h += '<div class="bub">' + (S.hdr ? `<div class="hd">${esc(S.hdr)}</div>` : '') + groups().map(g => `<div class="slot"><small>${esc(rn(g.r))}</small><div class="nms">${g.ps.map((x, k) => `<button class="nm ${x.p ? '' : 'void'}" data-a="swap" data-i="${x.i}" ${sent ? 'disabled' : ''}>${x.p ? esc(pn(x.p)) : 'Sin asignar'}${k < g.ps.length - 1 ? ',' : ''}</button>`).join('')}</div></div>`).join('') + (S.cls ? `<div class="cl">${esc(S.cls)}</div>` : '') + '</div>';
-  if (draft.some(s => !s.p)) h += '<p class="warn">Hay puestos sin asignar.</p>';
+  if (draft.some(s => !s.p)) h += '<p class="warn">Hay puestos sin asignar.' + (bz.size ? ' Algunas personas no se usaron porque ya tienen asignación en la planilla.' : '') + '</p>';
   if (sent) h += '<p class="cnt okn">\u2713 Registrado en el historial. Tocá Regenerar para armar otro.</p>';
   h += `<div class="stack"><button class="wa" data-a="wa">${ICON_WA}<span>Enviar por WhatsApp</span></button><div class="row" style="margin:0"><button class="ib" data-a="gen">${ICON_RETRY}<span>Regenerar</span></button><button class="ib" data-a="copy">${ICON_COPY}<span>Copiar</span></button></div><button data-a="share">Compartir</button></div>`;
   return h;
@@ -481,7 +492,8 @@ function vRol() {
   return h;
 }
 function vRem() {
-  let h = S.rem.length ? '' : '<p class="empty">Sin recordatorios.</p>';
+  let h = `<div class="card"><div class="line"><span class="drv">${ICON_PDF}<span>Cambiar planilla PDF</span></span><button class="sw ${S.pdfRem.on ? 'on' : ''}" role="switch" aria-checked="${S.pdfRem.on}" aria-label="Aviso para cambiar la planilla PDF" data-a="prem"><i></i></button></div><div class="exp ${S.pdfRem.on ? 'open' : ''}"><div class="inner"><div class="cloudbox"><label>Hora del aviso<input type="time" data-a="prtm" value="${esc(S.pdfRem.time)}"></label><p class="leg">${esc(pdfDueText())}</p></div></div></div></div>`;
+  h += S.rem.length ? '' : '<p class="empty">Sin recordatorios.</p>';
   h += S.rem.map(r => `<div class="card"><div class="chips">${DN.map((n, i) => `<button class="chip ${r.days.includes(i + 1) ? 'on' : ''}" data-a="rd" data-id="${r.id}" data-v="${i + 1}">${n}</button>`).join('')}</div><div class="r1"><input type="time" data-a="rtm" data-id="${r.id}" value="${esc(r.time)}" aria-label="Hora"><button class="dng" data-a="rx" data-id="${r.id}">Quitar</button></div>${(!r.days.length || !r.time) ? '<p class="warn">Falta elegir día y hora.</p>' : ''}</div>`).join('');
   h += '<button class="pri" data-a="radd">Agregar recordatorio</button>';
   if (A) h += '<button data-a="batt" style="width:100%;margin-top:10px">Ajustes de batería</button><p class="leg">En caso de usar un teléfono Xiaomi, esta opción evita que el sistema bloquee los recordatorios para ahorrar batería.</p>';
@@ -503,7 +515,7 @@ function vCfg() {
 <div class="card"><label>Nombre de usuario<input data-a="user" value="${esc(S.user)}"></label></div>
 <div class="card">${sw(L.on, 'lock', 'Bloqueo con patrón')}<p class="leg">Usa el bloqueo de tu teléfono si tiene uno; si no, creás un patrón dentro de la app.</p>${L.on && L.mode === 'app' ? '<button data-a="lockchg" style="width:100%;margin-top:10px">Cambiar patrón</button>' : ''}</div>
 <div class="card"><h2>Copia de seguridad</h2><div class="row"><button data-a="exp">Exportar</button><button data-a="imp">Importar</button></div><p class="leg">Las copias se guardan cifradas: solo esta app puede leerlas.</p><input type="file" id="bf" data-a="bf" accept=".txt,text/plain" hidden></div>
-<div class="card"><h2>Planilla PDF</h2><button class="upl" data-a="pdfup">${ICON_UPL}<span>${pdfInfo.has ? 'Subir nueva planilla' : 'Subir planilla PDF'}</span></button><div class="exp ${pdfInfo.has ? 'open' : ''}"><div class="inner"><div class="pdfx"><p class="leg" style="margin:0 2px 10px">${esc(pdfInfo.name || '')}</p><button class="dng" data-a="pdfdel">Borrar PDF</button></div></div></div></div>
+<div class="card"><h2>Planilla PDF</h2><button class="upl" data-a="pdfup">${ICON_UPL}<span>${pdfInfo.has ? 'Subir nueva planilla' : 'Subir planilla PDF'}</span></button><div class="exp ${pdfInfo.has ? 'open' : ''}"><div class="inner"><div class="pdfx"><p class="leg" style="margin:0 2px 10px">${esc(pdfInfo.name || '')}</p>${sw(S.pdfAvoid, 'pavoid', 'Evitar nombres de la planilla')}<p class="leg" style="margin:8px 2px 12px">${esc(pdfSummary())}</p><div class="stack"><button data-a="pdfsee">Ver lo que leyó la app</button><button class="dng" data-a="pdfdel">Borrar PDF</button></div></div></div></div></div>
 <div class="card"><div class="line"><span class="drv">${ICON_DRIVE}<span>Copia de seguridad automática</span></span><button class="sw ${S.cloud.on ? 'on' : ''}" role="switch" aria-checked="${S.cloud.on}" aria-label="Copia de seguridad automática" data-a="cloud"><i></i></button></div><div class="exp ${S.cloud.on ? 'open' : ''}"><div class="inner"><div class="cloudbox"><div class="line"><span>Hacer una copia...</span><select class="cfr" data-a="cfreq" aria-label="Frecuencia">${[['day', 'Diaria'], ['week', 'Semanal'], ['month', 'Mensual']].map(o => `<option value="${o[0]}" ${S.cloud.freq === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select></div><p class="leg">${esc(cloudStat())}</p><button data-a="cnow" style="width:100%;margin-top:10px">Copiar ahora</button></div></div></div></div>
 <div class="card about"><div>Versión ${esc(VER)}</div><div>Idea de Esteban Gómez</div><div>Programado con Claude</div></div>`;
 }
@@ -519,9 +531,11 @@ function overlay() {
     xa:'¿Seguro que desea restablecer la app? Se borrarán todos los datos y quedará como recién instalada.' + NR,
     pdf:'¿Seguro que desea borrar este PDF? Esta acción no se puede deshacer.'
   };
+  if (dlg && dlg.k === 'rest') MSG.rest = '¿Desea restablecer los datos anteriores? Hay una copia de seguridad del ' + new Date(dlg.t).toLocaleString('es-AR', {day:'numeric', month:'long', hour:'2-digit', minute:'2-digit'}) + ' en esta cuenta de Google Drive. Se reemplazarán los datos actuales.';
+  if (dlg && dlg.k === 'busy') return `<div class="ov${o}" data-a="noop"><div class="dlg wn"><h2>Aviso</h2><p><b>${esc(pn(dlg.id))}</b> ya tiene asignación: ${esc(dlg.info)}. ¿Desea ponerlo igualmente?</p><div class="row"><button data-a="dno">NO</button><button class="pri" data-a="dyes">SÍ</button></div></div></div>`;
   if (dlg) return `<div class="ov${o}" data-a="noop"><div class="dlg"><p>${MSG[dlg.k]}</p><div class="row"><button data-a="dno">NO</button><button class="pri" data-a="dyes">SÍ</button></div></div></div>`;
-  if (sheet && sheet.txt !== undefined) return `<div class="ov bt${o}" data-a="close"><div class="sheet" data-a="noop"><h2>Copiá el mensaje</h2><textarea rows="10" readonly>${esc(sheet.txt)}</textarea><button data-a="close">Cerrar</button></div></div>`;
-  if (sheet) return `<div class="ov bt${o}" data-a="close"><div class="sheet" data-a="noop"><h2>Cambiar ${esc(rn(sheet.r))}</h2>${sheet.list.length ? sheet.list.map(p => `<button data-a="pick" data-v="${p.id}">${esc(p.name)}</button>`).join('') : '<p class="empty">No hay otros candidatos disponibles.</p>'}<button data-a="pick" data-v="">Dejar sin asignar</button><button data-a="close">Cerrar</button></div></div>`;
+  if (sheet && sheet.txt !== undefined) return `<div class="ov bt${o}" data-a="close"><div class="sheet" data-a="noop"><h2>${esc(sheet.ttl || 'Copiá el mensaje')}</h2><textarea rows="10" readonly>${esc(sheet.txt)}</textarea><button data-a="close">Cerrar</button></div></div>`;
+  if (sheet) return `<div class="ov bt${o}" data-a="close"><div class="sheet" data-a="noop"><h2>Cambiar ${esc(rn(sheet.r))}</h2>${sheet.list.length ? sheet.list.map(p => bz.has(p.id) ? `<button class="bz" data-a="pick" data-v="${p.id}">${esc(p.name)}<small>Ya tiene: ${esc(bz.get(p.id))}</small></button>` : `<button data-a="pick" data-v="${p.id}">${esc(p.name)}</button>`).join('') : '<p class="empty">No hay otros candidatos disponibles.</p>'}<button data-a="pick" data-v="">Dejar sin asignar</button><button data-a="close">Cerrar</button></div></div>`;
   return '';
 }
 const NAV = () => {
@@ -703,10 +717,10 @@ async function importText(s) {
     if (raw.charAt(0) !== '{') raw = await unseal(raw);   /* acepta respaldos cifrados y los antiguos en texto plano */
     const o = JSON.parse(raw);
     if (!o || !Array.isArray(o.roles) || !Array.isArray(o.people) || !Array.isArray(o.hist)) throw 0;
-    const keep = {user:S.user, theme:S.theme, accent:S.accent, anim:S.anim, snd:S.snd, hap:S.hap, smart:S.smart, rem:S.rem, cloud:S.cloud};
+    const keep = {user:S.user, theme:S.theme, accent:S.accent, anim:S.anim, snd:S.snd, hap:S.hap, smart:S.smart, rem:S.rem, cloud:S.cloud, pdfAvoid:S.pdfAvoid, pdfRem:S.pdfRem};
     S = Object.assign(clone(DEF), o);
     S.v = o.v || 1;
-    Object.assign(S, {user:keep.user, theme:keep.theme, accent:keep.accent, anim:keep.anim, snd:keep.snd, hap:keep.hap, smart:keep.smart, cloud:keep.cloud});
+    Object.assign(S, {user:keep.user, theme:keep.theme, accent:keep.accent, anim:keep.anim, snd:keep.snd, hap:keep.hap, smart:keep.smart, cloud:keep.cloud, pdfAvoid:keep.pdfAvoid, pdfRem:keep.pdfRem});
     S.rem = Array.isArray(o.rem) ? o.rem : keep.rem;
     migrate();
     draft = null; sent = false; day = pickDay(); save(); syncRem(); applyTheme(); render();
@@ -811,12 +825,12 @@ async function pvEnsure() {
   } catch (e) {} finally { pvBusy = false; }
 }
 window.onPdfSaved = ok => {
-  refreshPdf();
+  refreshPdf(); ensureIndex();
   toast(ok ? '\u2713 PDF subido con éxito' : 'No se pudo subir: el archivo no es un PDF válido');
   render();
 };
 window.onPdfShared = ok => {
-  refreshPdf();
+  refreshPdf(); ensureIndex();
   try { if (A) A.pdfAck(); } catch (e) {}
   if (!ok) { if (Date.now() - lastShare > 1500) toast('No se pudo recibir el archivo: no es un PDF válido'); return; }
   if (Date.now() - lastShare < 1500) return;
@@ -826,6 +840,190 @@ window.onPdfShared = ok => {
   pdfNote = true; fx = ['main', 'title'];
   render();
 };
+
+/* ---- planilla PDF: lectura de asignaciones para no repetir nombres ---- */
+const PIK = 'asignaciones_pdfidx_v1';
+let PI = null, idxBusy = false, bz = new Map();
+try { PI = JSON.parse(localStorage.getItem(PIK)); } catch (e) { PI = null; }
+const fold = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+const pad2 = n => String(n).padStart(2, '0');
+const ymd = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+const dparse = s => { const p = s.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+const dshort = d => d.toLocaleDateString('es-AR', {day:'numeric', month:'short'});
+const rng = (s, e) => dshort(dparse(s)) + ' – ' + dshort(dparse(e));
+const MES3 = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const monthOf = s => MES3.indexOf(fold(s).slice(0, 3).replace('set', 'sep'));
+const WKRE = /semana\s+(?:del?\s+)?(\d{1,2})(?:\s+de\s+([a-z]+))?\s*(?:-|–|—|\bal\b)\s*(\d{1,2})\s+de\s+([a-z]+)/;
+function weekHead(text) {
+  const m = fold(text).match(WKRE); if (!m) return null;
+  const ds = +m[1], de = +m[3], me = monthOf(m[4]); if (me < 0) return null;
+  let ms = m[2] ? monthOf(m[2]) : (ds > de ? (me + 11) % 12 : me);
+  if (ms < 0) ms = me;
+  return {ds, ms, de, me};
+}
+/* El año no figura en la planilla: la primera semana toma el año más cercano a hoy y las siguientes avanzan en orden. */
+function resolveYears(heads) {
+  const now = new Date(); let prev = null;
+  return heads.map(h => {
+    if (!h) return null;
+    let best = null;
+    for (let y = now.getFullYear() - 1; y <= now.getFullYear() + 2; y++) {
+      const e = new Date(y, h.me, h.de);
+      if (prev) { if (e > prev && (!best || e < best.e)) best = {e, y}; }
+      else if (!best || Math.abs(e - now) < Math.abs(best.e - now)) best = {e, y};
+    }
+    if (!best) return null;
+    prev = best.e;
+    return {s: ymd(new Date(h.ms > h.me ? best.y - 1 : best.y, h.ms, h.ds)), e: ymd(best.e)};
+  });
+}
+/* pages: [{w, items:[{s, x, y, w}]}] con las coordenadas de pdf.js. Devuelve las semanas y quién tiene cada asignación numerada. */
+function parseSheet(pages) {
+  const weeks = []; let cur = null;
+  pages.forEach(pg => {
+    const W = pg.w || 595;
+    const its = pg.items.filter(i => i.s && i.s.trim()).map(i => ({s:i.s.trim(), x:i.x, c:i.x + (i.w || 0) / 2, y:i.y}));
+    const hA = its.find(i => fold(i.s) === 'sala auxiliar'), hP = its.find(i => /^(auditorio|sala) principal$/.test(fold(i.s)));
+    let nameMin = W * .462, split = W * .715;
+    if (hA && hP) { split = (hA.c + hP.c) / 2; nameMin = Math.max(hA.c - 80, W * .44); }
+    const left = [], right = [], labs = [];
+    its.forEach(i => {
+      if (/^\d{1,2}:\d{2}$/.test(i.s)) return;
+      if (/:\s*\.?$/.test(i.s)) { labs.push(i); return; }
+      (i.x < nameMin ? left : right).push(i);
+    });
+    left.sort((a, b) => b.y - a.y || a.x - b.x);
+    const lines = [];
+    left.forEach(i => { const l = lines.find(L => Math.abs(L.y - i.y) < 2.5); if (l) l.its.push(i); else lines.push({y:i.y, its:[i]}); });
+    lines.forEach(L => { L.its.sort((a, b) => a.x - b.x); L.t = L.its.map(i => i.s).join(' ').replace(/\s+/g, ' '); });
+    const hs = [];
+    lines.forEach(L => { const hd = weekHead(L.t); if (hd) { const w = {head:hd, a:[]}; weeks.push(w); hs.push({y:L.y, w}); } });
+    const wf = y => { let b = null; hs.forEach(h => { if (h.y + 12 >= y && (!b || h.y < b.y)) b = h; }); return b ? b.w : cur; };
+    const anch = [];
+    lines.forEach(L => {
+      if (hs.some(h => h.y === L.y) || /^\(/.test(L.t)) return;
+      const m = L.t.match(/^(\d{1,2})\.(?:\s|$)/);
+      anch.push({y:L.y, num:!!m, n:m ? +m[1] : 0, t:m ? L.t.replace(/\s*\(\s*\d+\s*mins?\.?\s*\)/gi, '').replace(/^(\d+)\.\s*/, '$1. ').trim() : '', cells:{a:[], p:[]}});
+    });
+    const labY = labs.filter(l => /presidente|consejero|oracion/.test(fold(l.s))).map(l => l.y);
+    right.forEach(i => {
+      const f = fold(i.s);
+      if (/\d/.test(i.s) || /sala auxiliar|auditorio|sala principal|^pagina$/.test(f) || f.length < 2) return;
+      if (labY.some(y => Math.abs(y - i.y) < 4)) return;
+      let b = null, d = 1e9;
+      anch.forEach(a => { const dd = Math.abs(a.y - i.y); if (dd < d) { d = dd; b = a; } });
+      if (b && b.num && d <= 12.5) b.cells[i.c < split ? 'a' : 'p'].push(i);
+    });
+    anch.filter(a => a.num).forEach(a => {
+      const w = wf(a.y); if (!w) return;
+      ['a', 'p'].forEach(r => { if (a.cells[r].length) w.a.push({n:a.n, t:a.t, r, c:a.cells[r].sort((x, y) => y.y - x.y).map(i => i.s)}); });
+    });
+    if (hs.length) cur = hs.reduce((m, h) => h.y < m.y ? h : m).w;
+  });
+  const dates = resolveYears(weeks.map(w => w.head));
+  return {weeks: weeks.map((w, k) => ({s:dates[k] ? dates[k].s : '', e:dates[k] ? dates[k].e : '', a:w.a}))};
+}
+function cellNames(c) {
+  const out = [];
+  c.forEach(s => { out.push(s); s.split(/\s+y\s+|\s*[\/,&+;]\s*/i).forEach(p => { if (p && p !== s) out.push(p); }); });
+  for (let k = 0; k + 1 < c.length; k++) out.push(c[k] + ' ' + c[k + 1]);
+  if (c.length > 2) out.push(c.join(' '));
+  return out.map(fold).filter(Boolean);
+}
+function sameName(a, b) {
+  if (a === b) return true;
+  const x = a.split(' '), y = b.split(' '), s = x.length <= y.length ? x : y, l = x.length <= y.length ? y : x;
+  return s.length >= 2 && s.every(t => l.includes(t));
+}
+/* Fecha de la próxima reunión del día elegido (hoy cuenta). */
+function meetDate() {
+  const d = S.days.find(x => x.id === day), t = new Date(); t.setHours(0, 0, 0, 0);
+  if (d && d.wd) { const n = ((new Date().getDay() + 6) % 7) + 1; t.setDate(t.getDate() + (d.wd - n + 7) % 7); }
+  return ymd(t);
+}
+function sheetWeek() {
+  if (!S.pdfAvoid || !pdfInfo.has || !PI || !PI.weeks) return null;
+  const d = meetDate();
+  return PI.weeks.find(w => w.s && w.s <= d && d <= w.e) || null;
+}
+/* id de persona -> "7. Discurso (Sala auxiliar)" para quienes ya tienen algo esa semana. */
+function busyMap() {
+  const w = sheetWeek(), m = new Map(); if (!w) return m;
+  const RN = {a:'Sala auxiliar', p:'Sala principal'};
+  S.people.forEach(p => {
+    const nm = fold(p.name), hit = {};
+    w.a.forEach(e => { if (cellNames(e.c).some(x => sameName(nm, x))) { const o = hit[e.n] = hit[e.n] || {t:e.t, r:[]}; if (!o.r.includes(e.r)) o.r.push(e.r); } });
+    const ks = Object.keys(hit);
+    if (ks.length) m.set(p.id, ks.map(n => hit[n].t + ' (' + hit[n].r.map(r => RN[r]).join(' y ') + ')').join('; '));
+  });
+  return m;
+}
+function pdfLine() {
+  if (!S.pdfAvoid || !pdfInfo.has) return '';
+  if (!PI) return '<p class="leg">Leyendo la planilla…</p>';
+  if (!PI.weeks.some(w => w.s)) return '<p class="leg">No pude leer semanas en la planilla PDF.</p>';
+  const w = sheetWeek();
+  return w ? `<p class="leg">Planilla: se evitan nombres con asignación del ${esc(rng(w.s, w.e))}.</p>` : `<p class="leg">La planilla no incluye la fecha de este día (${esc(dshort(dparse(meetDate())))}).</p>`;
+}
+function pdfSummary() {
+  if (!PI) return 'Leyendo la planilla…';
+  const ws = PI.weeks.filter(w => w.s);
+  if (!ws.length) return 'No pude leer semanas en este PDF.';
+  return 'Leí ' + ws.length + (ws.length === 1 ? ' semana' : ' semanas') + ' (' + rng(ws[0].s, ws[ws.length - 1].e) + ').';
+}
+function pdfReport() {
+  if (!PI) return 'Todavía no se leyó la planilla.';
+  if (!PI.weeks.length) return 'No encontré semanas con asignaciones en este PDF.';
+  return PI.weeks.map(w => {
+    const by = {};
+    w.a.forEach(e => { (by[e.n] = by[e.n] || {t:e.t, a:'', p:''})[e.r] = e.c.join(', '); });
+    const ls = Object.keys(by).map(n => by[n].t + ' → ' + [by[n].a && 'Sala auxiliar: ' + by[n].a, by[n].p && 'Sala principal: ' + by[n].p].filter(Boolean).join(' | '));
+    return (w.s ? 'Semana ' + rng(w.s, w.e) : 'Semana sin fecha') + '\n' + (ls.length ? ls.join('\n') : '(ninguna asignación leída)');
+  }).join('\n\n');
+}
+function pdfDue() {
+  if (!PI || !PI.weeks) return 0;
+  const es = PI.weeks.filter(w => w.e).map(w => w.e).sort(); if (!es.length) return 0;
+  const p = es[es.length - 1].split('-').map(Number), t = (S.pdfRem.time || '09:00').split(':').map(Number);
+  return new Date(p[0], p[1] - 1, p[2], t[0] || 0, t[1] || 0, 0).getTime();
+}
+function pdfDueText() {
+  if (!pdfInfo.has) return 'Cuando subas una planilla PDF, te aviso el último día de su última semana.';
+  if (!PI) return 'Leyendo la planilla…';
+  const at = pdfDue(); if (!at) return 'No pude encontrar las semanas en la planilla.';
+  const f = new Date(at).toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
+  return at > Date.now() ? 'Te aviso el ' + f + ' a las ' + S.pdfRem.time + ' (último día de la última semana).' : 'La planilla ya terminó el ' + f + '. Subí una nueva desde Configuración.';
+}
+function syncPdfDue() {
+  try { if (A) A.setPdfDue(String(S.pdfRem.on && pdfInfo.has ? pdfDue() : 0)); } catch (e) {}
+}
+function clearIndex() {
+  PI = null; try { localStorage.removeItem(PIK); } catch (e) {}
+  syncPdfDue();
+}
+async function ensureIndex() {
+  if (!A) return;
+  if (!pdfInfo.has) { if (PI) { clearIndex(); render(); } return; }
+  if (PI && PI.t === pdfInfo.t) return;
+  if (idxBusy) return;
+  idxBusy = true;
+  const t = pdfInfo.t; let ok = true;
+  try {
+    await loadPdfJs();
+    const doc = await pdfjsLib.getDocument({url:new URL('/pdf/planilla.pdf?v=' + t, location.href).href}).promise;
+    const pages = [];
+    for (let i = 1; i <= doc.numPages; i++) {
+      const pg = await doc.getPage(i), vp = pg.getViewport({scale:1}), tc = await pg.getTextContent();
+      pages.push({w:vp.width, items:tc.items.filter(x => x.str && x.str.trim()).map(x => ({s:x.str, x:x.transform[4], y:x.transform[5], w:x.width}))});
+    }
+    try { doc.destroy(); } catch (e) {}
+    PI = Object.assign(parseSheet(pages), {t});
+  } catch (e) { ok = false; PI = {t, weeks:[]}; }
+  if (ok) { try { localStorage.setItem(PIK, JSON.stringify(PI)); } catch (e) {} }
+  idxBusy = false;
+  syncPdfDue(); render();
+  if (pdfInfo.t !== t) ensureIndex();
+}
 
 /* ---- copia de seguridad automática en Google Drive ---- */
 let snapT;
@@ -844,13 +1042,14 @@ function cloudStat() {
   const fd = ts => new Date(ts).toLocaleDateString('es-AR', {day:'numeric', month:'short'});
   let t = st.last ? 'Última copia: ' + new Date(st.last).toLocaleString('es-AR', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}) + '.' : 'Todavía no se hizo ninguna copia.';
   t += ' Próxima: aprox. ' + fd(nxt) + '.';
+  if (st.email) t += ' Cuenta: ' + st.email + '.';
   if (st.folder) t += ' Carpeta: ' + st.folder + '.';
   if (st.err) t += ' Aviso: ' + st.err + '.';
   return t;
 }
 function cloudLost() {
   S.cloud.on = false; save();
-  toast('Se perdió la conexión con Google Drive. La copia automática se desactivó.');
+  toast('Se perdió la conexión con Drive. Copia automática desactivada.');
   render();
 }
 function checkCloud() {
@@ -863,18 +1062,32 @@ async function cloudNow() {
   await pushSnap();
   try { A.backupNow(); } catch (e) { toast('No se pudo guardar la copia'); }
 }
-window.onBackupFolder = (ok, why, name) => {
+window.onDriveConnect = (ok, why, extra) => {
   if (!ok) {
     S.cloud.on = false; save();
-    toast(why === 'notdrive' ? 'La carpeta elegida no es de Google Drive. La copia automática quedó desactivada.' : 'No se conectó ninguna cuenta de Google. La copia automática quedó desactivada.');
-    render(); return;
+    const m = {
+      cancel:'No se conectó ninguna cuenta. Copia automática desactivada.',
+      nogms:'Este teléfono no tiene los servicios de Google necesarios.',
+      nonet:'Sin conexión a internet. Copia automática desactivada.',
+      config:'Falta configurar el acceso de la app a Google (error 10).',
+      api:'Google rechazó la conexión (' + extra + '). Revisá que la API de Drive esté habilitada.'
+    }[why] || ('No se pudo conectar con Google Drive' + (extra ? ' (código ' + extra + ')' : '') + '.');
+    toast(m); render(); return;
   }
-  S.cloud = {on:true, freq:(S.cloud && S.cloud.freq) || 'month', since:Date.now(), folder:name};
+  let info = {};
+  try { info = JSON.parse(extra); } catch (e) {}
+  S.cloud = {on:true, freq:(S.cloud && S.cloud.freq) || 'month', since:Date.now(), folder:'Asignaciones', email:info.email || ''};
   save();
   try { A.setBackupSchedule(S.cloud.freq); } catch (e) {}
   pushSnap();
-  toast('\u2713 Copia automática activada');
+  const b = (info.backups || [])[0];
+  if (b) { dlg = {k:'rest', id:b.id, t:b.t}; toast('\u2713 Cuenta conectada'); }
+  else toast('\u2713 Copia automática activada');
   render();
+};
+window.onDriveRestored = (ok, text) => {
+  if (!ok) { toast('No se pudo descargar la copia. Revisá tu conexión.'); return; }
+  importText(text);
 };
 window.onBackupDone = r => {
   if (r === 0) toast('\u2713 Copia guardada en Google Drive');
@@ -1027,8 +1240,8 @@ function resetApp() {
   tab = 'msg'; cfg = false; info = false; open = null; menu = null; lastMenu = null; fRole = null;
   draft = null; sent = false; nnv = ''; add.clear(); dlg = null; sheet = null; day = pickDay();
   try { if (A) { A.clearBackup(); A.pdfDelete(); } } catch (e) {}
-  pdfInfo = {has:false, name:'', t:0, fresh:false}; closePdf();
-  syncRem(); applyTheme();
+  pdfInfo = {has:false, name:'', t:0, fresh:false}; closePdf(); clearIndex();
+  syncRem(); syncPdfDue(); applyTheme();
 }
 window.onSaved = ok => toast(ok ? '\u2713 Respaldo exportado con éxito' : 'No se pudo guardar el archivo');
 window.onFilePicked = t => { if (t == null) toast('No se pudo leer el archivo'); else importText(t); };
@@ -1037,6 +1250,7 @@ window.onBack = () => {
   if (pdfOpen) { closePdf(); return true; }
   if (pl && pl.kind !== 'unlock') { pl = null; render(); return true; }
   if (locked) return false;
+  if (dlg && dlg.k === 'busy') { dlg = null; render(); return true; }
   if (dlg || sheet) { closeOv(); return true; }
   if (menu) { menu = null; render(); return true; }
   if (info) { info = false; render(); return true; }
@@ -1052,7 +1266,7 @@ document.addEventListener('visibilitychange', () => {
     return;
   }
   hiddenAt = 0;
-  refreshPdf(); checkCloud();
+  refreshPdf(); ensureIndex(); checkCloud();
   if (S.user && !locked && !pl && !draft && !dlg && !sheet) { day = pickDay(); render(); }
 });
 
@@ -1078,9 +1292,16 @@ document.addEventListener('click', e => {
   else if (a === 'swap') {
     const i = +b.dataset.i, s = draft[i];
     const used = new Set(draft.filter((_, j) => j !== i).map(x => x.p));
-    sheet = {i, r:s.r, list:elig(S.roles.find(r => r.id === s.r), used)};
+    bz = busyMap();
+    const all = elig(S.roles.find(r => r.id === s.r), used, true);
+    sheet = {i, r:s.r, list:all.filter(p => !bz.has(p.id)).concat(all.filter(p => bz.has(p.id)))};
   }
-  else if (a === 'pick') { draft[sheet.i].p = v || null; closeOv(); return; }
+  else if (a === 'pick') {
+    const cur = draft[sheet.i];
+    if (v && v !== cur.p && bz.has(v)) dlg = {k:'busy', i:sheet.i, id:v, info:bz.get(v)};
+    else { cur.p = v || null; closeOv(); return; }
+  }
+  else if (a === 'dno' && dlg && dlg.k === 'busy') { dlg = null; }
   else if (a === 'close' || a === 'dno') { closeOv(); return; }
   else if (a === 'copy') {
     const done = () => { afterSend('Mensaje copiado'); render(); };
@@ -1118,7 +1339,9 @@ document.addEventListener('click', e => {
   else if (a === 'rsa') dlg = {k:'xa'};
   else if (a === 'dyes') {
     const k = dlg.k;
-    if (k === 'pdf') { try { if (A) A.pdfDelete(); } catch (e) {} refreshPdf(); closePdf(); toast('\u2713 PDF borrado'); closeOv(); return; }
+    if (k === 'busy') { draft[dlg.i].p = dlg.id; closeOv(); return; }
+    if (k === 'rest') { try { A.driveRestore(dlg.id); toast('Restableciendo datos…'); } catch (e) {} closeOv(); return; }
+    if (k === 'pdf') { try { if (A) A.pdfDelete(); } catch (e) {} refreshPdf(); closePdf(); clearIndex(); toast('\u2713 PDF borrado'); closeOv(); return; }
     if (k === 'h') { S.hist = S.hist.filter(e => String(e.t) !== String(dlg.id)); draft = null; sent = false; save(); toast('\u2713 Mensaje borrado'); closeOv(); return; }
     if (k === 'xp') { S.people = []; S.last = {}; S.any = {}; open = null; fRole = null; draft = null; sent = false; save(); toast('\u2713 Personas borradas'); closeOv(); return; }
     if (k === 'xh') { S.hist = []; S.last = {}; S.any = {}; draft = null; sent = false; save(); toast('\u2713 Historial borrado'); closeOv(); return; }
@@ -1145,9 +1368,12 @@ document.addEventListener('click', e => {
   else if (a === 'pvz') { const bb = $('#pvb'); if (bb) pvSetZoom(pvZoom * (v === '+' ? 1.4 : 1 / 1.4), bb.clientWidth / 2, bb.clientHeight / 2); return; }
   else if (a === 'pdfup') { if (A) A.pickPdf(); else toast('Disponible solo en la app para Android'); return; }
   else if (a === 'pdfdel') dlg = {k:'pdf'};
+  else if (a === 'pavoid') { S.pdfAvoid = !S.pdfAvoid; save(); }
+  else if (a === 'pdfsee') { sheet = {txt:pdfReport(), ttl:'Lo que leyó la app'}; }
+  else if (a === 'prem') { S.pdfRem.on = !S.pdfRem.on; save(); syncPdfDue(); }
   else if (a === 'cloud') {
     if (S.cloud.on) { S.cloud.on = false; save(); try { if (A) A.clearBackup(); } catch (e) {} toast('Copia automática desactivada'); }
-    else if (A) { try { A.pickBackupFolder(); } catch (e) { toast('No se pudo abrir el selector de carpetas'); } return; }
+    else if (A) { try { A.driveConnect(); } catch (e) { toast('No se pudo conectar con Google'); } return; }
     else { toast('Disponible solo en la app para Android'); return; }
   }
   else if (a === 'cnow') { cloudNow(); return; }
@@ -1176,6 +1402,7 @@ document.addEventListener('change', e => {
   else if (a === 'hdr') S.hdr = t.value.trim();
   else if (a === 'cls') S.cls = t.value.trim();
   else if (a === 'rtm') { const m = S.rem.find(x => x.id === t.dataset.id); if (m) { m.time = t.value; save(); syncRem(); render(); } return; }
+  else if (a === 'prtm') { S.pdfRem.time = /^\d{2}:\d{2}$/.test(t.value) ? t.value : '09:00'; save(); syncPdfDue(); render(); return; }
   else if (a === 'user') {
     const n = t.value.trim();
     if (!n) { toast('El nombre no puede quedar vacío'); render(); return; }
@@ -1191,6 +1418,7 @@ syncRem();
 if (locked && L.mode === 'device') promptDevice();
 if (pdfInfo.fresh) window.onPdfShared(true);
 checkCloud();
+ensureIndex(); syncPdfDue();
 </script>
 </body>
 </html>

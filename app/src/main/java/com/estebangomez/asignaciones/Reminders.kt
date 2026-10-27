@@ -20,6 +20,7 @@ import java.time.temporal.TemporalAdjusters
 
 object Reminders {
     private const val PREFS = "rem"
+    const val DUE = "pdfdue"
 
     private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -62,6 +63,64 @@ object Reminders {
             // JSON inválido: no se programa nada
         }
         p.edit().putStringSet("keys", keys).apply()
+        scheduleDue(c)
+    }
+
+    private fun duePending(c: Context): PendingIntent {
+        val i = Intent(c, AlarmReceiver::class.java).putExtra("key", DUE)
+        return PendingIntent.getBroadcast(
+            c, DUE.hashCode(), i,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    /** Aviso único para cambiar la planilla PDF (at = momento exacto en milisegundos; 0 = sin aviso). */
+    fun setPdfDue(c: Context, at: Long) {
+        prefs(c).edit().putLong("due", at).apply()
+        scheduleDue(c)
+    }
+
+    fun scheduleDue(c: Context) {
+        val am = c.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val pi = duePending(c)
+        am.cancel(pi)
+        val at = prefs(c).getLong("due", 0L)
+        if (at <= System.currentTimeMillis()) return
+        if (Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms()) {
+            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
+        } else {
+            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
+        }
+    }
+
+    fun notifyDue(c: Context) {
+        val nm = c.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.createNotificationChannel(
+            NotificationChannel("asig", "Recordatorios", NotificationManager.IMPORTANCE_HIGH)
+        )
+        val user = prefs(c).getString("user", "") ?: ""
+        val title = SpannableStringBuilder()
+        if (user.isNotBlank()) {
+            title.append(user)
+            title.setSpan(StyleSpan(Typeface.BOLD), 0, title.length, 0)
+            title.append(", recuerda cambiar la planilla PDF ⏰")
+        } else {
+            title.append("Recuerda cambiar la planilla PDF ⏰")
+        }
+        val open = PendingIntent.getActivity(
+            c, 0,
+            Intent(c, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val n = Notification.Builder(c, "asig")
+            .setSmallIcon(R.drawable.ic_notif)
+            .setContentTitle(title)
+            .setContentText("Hoy termina la última semana de la planilla. Tocá para subir una nueva.")
+            .setContentIntent(open)
+            .setAutoCancel(true)
+            .build()
+        nm.notify(2, n)
     }
 
     fun schedule(c: Context, key: String, d: Int, h: Int, m: Int) {
@@ -115,6 +174,10 @@ object Reminders {
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val key = intent.getStringExtra("key") ?: return
+        if (key == Reminders.DUE) {
+            Reminders.notifyDue(context)
+            return
+        }
         if (!Reminders.hasKey(context, key)) return
         Reminders.schedule(
             context, key,
