@@ -1,15 +1,23 @@
-name: Compilar APK
+name: Compilar APK y PWA
 
 on:
   push:
     branches: [main, master]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  build:
+  # ---------- Android ----------
+  apk:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Descargar pdf.js (visor de la planilla)
+        continue-on-error: true
+        run: bash scripts/get-pdfjs.sh app/src/main/assets/pdfjs
 
       - uses: actions/setup-java@v4
         with:
@@ -27,3 +35,37 @@ jobs:
         with:
           name: Asignaciones-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+
+  # ---------- iPhone / iPad (PWA) ----------
+  pwa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Armar la versión web
+        run: bash scripts/build-pwa.sh
+
+      # Copia descargable de la versión web (por si querés alojarla en otro lado)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Asignaciones-iOS-PWA
+          path: _site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: pwa
+    runs-on: ubuntu-latest
+    # Si GitHub Pages no está activado en el repositorio, este paso falla sin afectar al APK.
+    continue-on-error: true
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
