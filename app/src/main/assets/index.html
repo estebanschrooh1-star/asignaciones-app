@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Asignaciones</title>
+<meta name="theme-color" content="#C2410C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Asignaciones">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <style>
 :root{--h:24;--s:92%;--al:40%;--ad:62%;
 --acc:hsl(var(--h) var(--s) var(--al));--on:#FFFFFF;--hd:var(--acc);--hdi:#FFFFFF;
@@ -18,7 +26,8 @@ html,body{height:100%;margin:0}
 *,*::before,*::after{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:Roboto,"Segoe UI",system-ui,sans-serif;font-size:16px;line-height:1.4;-webkit-tap-highlight-color:transparent}
 body,#app,header,nav,.card,.bub,.menu,.info,.dlg,.sheet,input,textarea,select{transition:background-color .35s,color .35s,border-color .35s}
-#app{height:100%;display:flex;flex-direction:column;max-width:520px;margin:0 auto;background:var(--sur);overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;max-width:520px;margin:0 auto;background:var(--sur);overflow:hidden;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:var(--hd);z-index:30;transition:background-color .35s}
 header{background:var(--hd);color:var(--hdi);display:flex;align-items:center;gap:2px;padding:4px 6px 4px 16px;min-height:56px}
 header h1{flex:1;font-size:20px;margin:0;font-weight:700}
 header button{background:none;border:0;border-radius:50%;color:var(--hdi);width:44px;height:44px;min-height:0;padding:0;display:grid;place-items:center;transition:background-color .25s,transform .14s}
@@ -27,13 +36,13 @@ header button:active{background:rgba(255,255,255,.3)}
 header svg{width:24px;height:24px}
 header [data-a="back"]{font-size:24px;margin-left:-12px;margin-right:4px}
 main{flex:1;overflow:auto;padding:14px 16px 20px}
-nav{position:relative;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);background:var(--sur)}
+nav{position:relative;display:grid;grid-template-columns:repeat(var(--n,5),1fr);border-top:1px solid var(--line);background:var(--sur)}
 nav button{border:0;border-radius:0;background:none;color:var(--mut);font-size:12px;padding:12px 0;transition:color .3s,background-color .2s}
 nav button.on{color:var(--acc)}
 nav button svg{width:26px;height:26px;display:block;margin:0 auto;transition:transform .32s cubic-bezier(.3,1.4,.5,1)}
 nav button.on svg{transform:scale(1.14)}
 nav button:active{transform:none;background:var(--sel)}
-.ind{position:absolute;top:-1px;left:0;width:20%;height:3px;background:var(--acc);border-radius:0 0 3px 3px;transform:translateX(calc(var(--i) * 100%));transition:transform .34s cubic-bezier(.3,.8,.25,1),background-color .35s}
+.ind{position:absolute;top:-1px;left:0;width:calc(100% / var(--n,5));height:3px;background:var(--acc);border-radius:0 0 3px 3px;transform:translateX(calc(var(--i) * 100%));transition:transform .34s cubic-bezier(.3,.8,.25,1),background-color .35s}
 button,input,textarea,select{font:inherit}
 button{color:var(--ink);background:var(--sur);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-height:44px;cursor:pointer;transition:background-color .3s,color .3s,border-color .3s,transform .14s,box-shadow .3s}
 button:active{transform:scale(.97)}
@@ -100,7 +109,7 @@ label input,label textarea,label select{margin-top:4px;font-size:16px}
 .ib svg{width:24px;height:24px}
 header button.dim{opacity:.6}
 [hidden]{display:none!important}
-.pv{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column;animation:fade .22s}
+.pv{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column;animation:fade .22s;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
 .pvh{background:var(--hd);color:var(--hdi);display:flex;align-items:center;gap:2px;padding:4px 8px;min-height:56px}
 .pvh span{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 6px}
 .pvh button{background:none;border:0;border-radius:50%;color:var(--hdi);width:44px;height:44px;min-height:0;padding:0;font-size:24px}
@@ -189,7 +198,7 @@ header button.dim{opacity:.6}
 .ov.out .sheet{animation:down .17s forwards}
 .sheet button{display:block;width:100%;text-align:left;margin-top:8px}
 .sheet textarea{margin-top:8px}
-.toast{position:fixed;left:50%;bottom:84px;transform:translate(-50%,14px) scale(.96);width:max-content;background:var(--ink);color:var(--sur);padding:8px 14px;border-radius:14px;font-size:13px;line-height:1.3;opacity:0;pointer-events:none;transition:opacity .25s,transform .3s cubic-bezier(.2,.9,.3,1.1);z-index:9;max-width:min(94vw,480px);text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translate(-50%,14px) scale(.96);width:max-content;background:var(--ink);color:var(--sur);padding:8px 14px;border-radius:14px;font-size:13px;line-height:1.3;opacity:0;pointer-events:none;transition:opacity .25s,transform .3s cubic-bezier(.2,.9,.3,1.1);z-index:9;max-width:min(94vw,480px);text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0) scale(1)}
 .wel{height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px;gap:18px;text-align:center}
 .wel svg{width:96px;height:96px;border-radius:22px;animation:pop .6s cubic-bezier(.2,.9,.3,1.2) backwards}
@@ -222,6 +231,8 @@ header h1.fx-title{animation:slidein .3s cubic-bezier(.2,.8,.2,1)}
 <script>
 const $ = s => document.querySelector(s);
 const A = window.Android;
+/* WEB = versión PWA (iPhone/iPad u otro navegador): sin recordatorios, sin copia en Drive y sin PDF compartido desde otras apps. */
+const WEB = !A;
 const clone = o => JSON.parse(JSON.stringify(o));
 const K = 'asignaciones_app_v1';
 const DEF = {
@@ -281,6 +292,7 @@ const pn = id => (S.people.find(p => p.id === id) || {name:'?'}).name;
 const dayName = id => (S.days.find(d => d.id === id) || {name:''}).name;
 const DN = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 const TT = {msg:'Mensaje', ppl:'Personas', rol:'Roles', rem:'Avisos', his:'Historial'};
+if (WEB) delete TT.rem;
 const SORTS = [['az','A-Z'], ['rec','Asignado recientemente'], ['old','Asignado hace mucho'], ['add','Agregado recientemente']];
 const INFO = {
   msg:'El ícono PDF abre la planilla que subiste. Elegí el día, generá el mensaje y tocá un nombre para cambiarlo. Al copiar, enviar por WhatsApp o compartir, el mensaje queda registrado en el historial y los nombres cuentan como usados. Si subiste una planilla PDF, la app evita a quienes ya tienen asignación en esa semana; si igual elegís a alguien así, te pregunta antes (en rojo suave en la lista).',
@@ -290,6 +302,10 @@ const INFO = {
   his:'Acá quedan los mensajes que se copiaron, enviaron o compartieron. Tocá el cesto para borrar uno; borrarlo no cambia el orden de rotación.',
   cfg:'Elegí el aspecto, el color de la app, los sonidos y la vibración. En Editar días cambiás los nombres, el día de la semana de cada uno y el orden (arrastrando las tres barras). Exportá una copia de seguridad cifrada en un archivo .txt. Con el bloqueo, la app se cierra con llave al salir por más de 30 segundos. En Restablecimiento podés borrar las personas, el historial o todos los datos; conviene exportar un respaldo antes. En Planilla PDF subís la hoja del programa (también podés compartir un PDF desde otra app hacia Asignaciones); la app lee los nombres para no repetirlos y con “Ver lo que leyó la app” comprobás que los leyó bien. La copia automática crea una carpeta “Asignaciones” en tu Google Drive y guarda ahí respaldos cifrados.'
 };
+if (WEB) {
+  delete INFO.rem;
+  INFO.cfg = 'Elegí el aspecto, el color de la app, los sonidos y la vibración. En Editar días cambiás los nombres, el día de la semana de cada uno y el orden (arrastrando las tres barras). Exportá una copia de seguridad cifrada en un archivo .txt y guardala en Archivos o donde prefieras. Con el bloqueo, la app se cierra con llave al salir por más de 30 segundos. En Restablecimiento podés borrar las personas, el historial o todos los datos; conviene exportar un respaldo antes. En Planilla PDF subís la hoja del programa; la app lee los nombres para no repetirlos y con “Ver lo que leyó la app” comprobás que los leyó bien.';
+}
 const ICON_I = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7.8" r="1.4" fill="currentColor"/><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>';
 const ICON_G = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>';
 const ICON_H = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>';
@@ -313,7 +329,7 @@ const ICON_DRIVE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="curr
 const ICON_MSG = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 10h44a5 5 0 0 1 5 5v27a5 5 0 0 1-5 5H31L19 57V47h-9a5 5 0 0 1-5-5V15a5 5 0 0 1 5-5z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M16 23h32M16 32h21" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
 const ICON_WA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 7.8c-.4.5-.6 1.2-.3 2 .6 1.8 2.5 3.8 4.4 4.6.9.4 1.6.1 2.1-.4l.5-.7a.5.5 0 0 0-.1-.7l-1.5-1a.5.5 0 0 0-.7.1l-.5.6c-.9-.4-1.9-1.4-2.3-2.3l.6-.5a.5.5 0 0 0 .1-.7l-1-1.5a.5.5 0 0 0-.8 0z" fill="currentColor"/></svg>';
 const LOGO = '<svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" fill="var(--acc)"/><path fill="var(--on)" d="M22 24h12v12H22zM42 28h32v4H42zM22 42h12v12H22zM42 46h32v4H42zM22 60h12v12H22zM42 64h20v4H42z"/></svg>';
-const VER = (() => { try { return A ? A.version() : '1.7.0'; } catch (e) { return '1.7.0'; } })();
+const VER = (() => { try { return A ? A.version() : '1.8.0'; } catch (e) { return '1.8.0'; } })();
 
 function pickDay() {
   if (S.smart) {
@@ -340,6 +356,7 @@ function cssHex(v) {
   const m = c.match(/[\d.]+/g) || [0, 0, 0];
   return '#' + m.slice(0, 3).map(x => Math.round(+x).toString(16).padStart(2, '0')).join('');
 }
+function setThemeColor(c) { const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', c); }
 function applyTheme() {
   const eff = S.theme === 'sys' ? (systemDark() ? 'dark' : 'light') : S.theme;
   const r = document.documentElement, c = ACC[S.accent] || ACC.orange;
@@ -347,7 +364,7 @@ function applyTheme() {
   r.setAttribute('data-anim', S.anim === false ? 'off' : 'on');
   r.style.setProperty('--h', c[0]); r.style.setProperty('--s', c[1] + '%');
   r.style.setProperty('--al', c[2] + '%'); r.style.setProperty('--ad', c[3] + '%');
-  try { if (A) A.setBars(cssHex('--hd'), cssHex('--sur'), eff === 'light'); } catch (e) {}
+  try { if (A) A.setBars(cssHex('--hd'), cssHex('--sur'), eff === 'light'); else setThemeColor(cssHex('--hd')); } catch (e) {}
 }
 if (mq.addEventListener) mq.addEventListener('change', applyTheme);
 
@@ -504,19 +521,26 @@ function vHis() {
   if (!S.hist.length) return '<p class="empty">Sin mensajes enviados.</p>';
   return [...S.hist].reverse().map(e => `<div class="he"><div class="hrow"><b>${esc(e.dn || dayName(e.day))} ${new Date(e.t).toLocaleDateString('es-AR', {day:'numeric', month:'short'})}</b><button class="trash" data-a="hdel" data-id="${e.t}" aria-label="Borrar mensaje" title="Borrar">${ICON_TR}</button></div>${e.a.map(x => `<div class="ln">${esc(x[0])}: ${esc(x[1])}</div>`).join('')}</div>`).join('');
 }
+function installHint() {
+  if (!WEB) return '';
+  const st = navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (st || !ios) return '';
+  return '<div class="card"><h2>Instalar en el iPhone</h2><p class="leg" style="margin:0">En Safari tocá Compartir (el cuadrado con la flecha) y elegí “Agregar a inicio”. Abrí siempre la app desde ese ícono: si la usás solo desde Safari, iOS puede borrar los datos después de varias semanas sin uso. Exportá una copia de vez en cuando.</p></div>';
+}
 function vCfg() {
   const sw = (on, a, l) => `<div class="line"><span>${l}</span><button class="sw ${on ? 'on' : ''}" role="switch" aria-checked="${on}" aria-label="${l}" data-a="${a}"><i></i></button></div>`;
   const accs = Object.keys(ACC).map(k => `<button class="acc ${S.accent === k ? 'on' : ''}" data-a="ac" data-v="${k}" aria-label="${ACC[k][4]}"><i style="--c:hsl(${ACC[k][0]} ${ACC[k][1]}% ${ACC[k][2]}%)"></i><span>${ACC[k][4]}</span></button>`).join('');
-  return `<div class="card"><h2>Apariencia</h2>${segHTML([['light', ICON_SUN, 'Claro'], ['dark', ICON_MOON, 'Oscuro'], ['sys', ICON_AUTO, 'Predeterminado']], S.theme, 'th')}<div class="accs">${accs}</div></div>
+  return `${installHint()}<div class="card"><h2>Apariencia</h2>${segHTML([['light', ICON_SUN, 'Claro'], ['dark', ICON_MOON, 'Oscuro'], ['sys', ICON_AUTO, 'Predeterminado']], S.theme, 'th')}<div class="accs">${accs}</div></div>
 <div class="card">${sw(S.anim, 'anim', 'Animaciones')}<div style="height:14px"></div>${sw(S.snd, 'snd', 'Sonidos táctiles')}<div style="height:14px"></div>${sw(S.hap, 'hap', 'Vibración táctil')}</div>
 <div class="card">${sw(S.smart, 'smart', 'Día inteligente')}<p class="leg">Al abrir la app en uno de tus días configurados, se selecciona ese día automáticamente.</p></div>
 <div class="card"><h2>Editar días</h2><div class="dlist" data-kind="days">${S.days.map(d => `<div class="ditem drow"><span class="hdl" aria-label="Mover">${ICON_H}</span><input data-a="dname" data-id="${d.id}" value="${esc(d.name)}" aria-label="Nombre del día"><select data-a="dwd" data-id="${d.id}" aria-label="Día de la semana"><option value="0">Sin día</option>${DN.map((n, i) => `<option value="${i + 1}" ${d.wd === i + 1 ? 'selected' : ''}>${n}</option>`).join('')}</select><button class="dng" data-a="ddel" data-id="${d.id}">Quitar</button></div>`).join('')}</div><button data-a="dnew" style="width:100%">Agregar día</button></div>
 <div class="card"><h2>Restablecimiento</h2><div class="stack"><button class="dng" data-a="rsp">Restablecer personas</button><button class="dng" data-a="rsh">Restablecer historial</button><button class="dng" data-a="rsa">Restablecer app</button></div></div>
 <div class="card"><label>Nombre de usuario<input data-a="user" value="${esc(S.user)}"></label></div>
-<div class="card">${sw(L.on, 'lock', 'Bloqueo con patrón')}<p class="leg">Usa el bloqueo de tu teléfono si tiene uno; si no, creás un patrón dentro de la app.</p>${L.on && L.mode === 'app' ? '<button data-a="lockchg" style="width:100%;margin-top:10px">Cambiar patrón</button>' : ''}</div>
+<div class="card">${sw(L.on, 'lock', 'Bloqueo con patrón')}<p class="leg">${WEB ? 'Creás un patrón dentro de la app para protegerla.' : 'Usa el bloqueo de tu teléfono si tiene uno; si no, creás un patrón dentro de la app.'}</p>${L.on && L.mode === 'app' ? '<button data-a="lockchg" style="width:100%;margin-top:10px">Cambiar patrón</button>' : ''}</div>
 <div class="card"><h2>Copia de seguridad</h2><div class="row"><button data-a="exp">Exportar</button><button data-a="imp">Importar</button></div><p class="leg">Las copias se guardan cifradas: solo esta app puede leerlas.</p><input type="file" id="bf" data-a="bf" accept=".txt,text/plain" hidden></div>
 <div class="card"><h2>Planilla PDF</h2><button class="upl" data-a="pdfup">${ICON_UPL}<span>${pdfInfo.has ? 'Subir nueva planilla' : 'Subir planilla PDF'}</span></button><div class="exp ${pdfInfo.has ? 'open' : ''}"><div class="inner"><div class="pdfx"><p class="leg" style="margin:0 2px 10px">${esc(pdfInfo.name || '')}</p>${sw(S.pdfAvoid, 'pavoid', 'Evitar nombres de la planilla')}<p class="leg" style="margin:8px 2px 12px">${esc(pdfSummary())}</p><div class="stack"><button data-a="pdfsee">Ver lo que leyó la app</button><button class="dng" data-a="pdfdel">Borrar PDF</button></div></div></div></div></div>
-<div class="card"><div class="line"><span class="drv">${ICON_DRIVE}<span>Copia de seguridad automática</span></span><button class="sw ${S.cloud.on ? 'on' : ''}" role="switch" aria-checked="${S.cloud.on}" aria-label="Copia de seguridad automática" data-a="cloud"><i></i></button></div><div class="exp ${S.cloud.on ? 'open' : ''}"><div class="inner"><div class="cloudbox"><div class="line"><span>Hacer una copia...</span><select class="cfr" data-a="cfreq" aria-label="Frecuencia">${[['day', 'Diaria'], ['week', 'Semanal'], ['month', 'Mensual']].map(o => `<option value="${o[0]}" ${S.cloud.freq === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select></div><p class="leg">${esc(cloudStat())}</p><button data-a="cnow" style="width:100%;margin-top:10px">Copiar ahora</button></div></div></div></div>
+${WEB ? '' : `<div class="card"><div class="line"><span class="drv">${ICON_DRIVE}<span>Copia de seguridad automática</span></span><button class="sw ${S.cloud.on ? 'on' : ''}" role="switch" aria-checked="${S.cloud.on}" aria-label="Copia de seguridad automática" data-a="cloud"><i></i></button></div><div class="exp ${S.cloud.on ? 'open' : ''}"><div class="inner"><div class="cloudbox"><div class="line"><span>Hacer una copia...</span><select class="cfr" data-a="cfreq" aria-label="Frecuencia">${[['day', 'Diaria'], ['week', 'Semanal'], ['month', 'Mensual']].map(o => `<option value="${o[0]}" ${S.cloud.freq === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select></div><p class="leg">${esc(cloudStat())}</p><button data-a="cnow" style="width:100%;margin-top:10px">Copiar ahora</button></div></div></div></div>`}
 <div class="card about"><div>Versión ${esc(VER)}</div><div>Idea de Esteban Gómez</div><div>Programado con Claude</div></div>`;
 }
 function overlay() {
@@ -540,7 +564,7 @@ function overlay() {
 }
 const NAV = () => {
   const ks = Object.keys(TT);
-  return `<nav><i class="ind" style="--i:${ks.indexOf(tab)}"></i>${ks.map(k => `<button class="${k === tab ? 'on' : ''}" data-a="tab" data-v="${k}" aria-label="${TT[k]}" title="${TT[k]}">${NAVI[k]}</button>`).join('')}</nav>`;
+  return `<nav style="--n:${ks.length}"><i class="ind" style="--i:${ks.indexOf(tab)}"></i>${ks.map(k => `<button class="${k === tab ? 'on' : ''}" data-a="tab" data-v="${k}" aria-label="${TT[k]}" title="${TT[k]}">${NAVI[k]}</button>`).join('')}</nav>`;
 };
 
 /* ---------- render con "morph": conserva los elementos para poder animarlos ---------- */
@@ -706,6 +730,10 @@ async function doExport() {
   try { data = (window.crypto && crypto.subtle) ? await seal(JSON.stringify(S)) : JSON.stringify(S); }
   catch (e) { toast('No se pudo crear el respaldo'); return; }
   if (A) { A.saveFile(name, data); return; }
+  try {
+    const f = new File([data], name, {type:'text/plain'});
+    if (navigator.canShare && navigator.canShare({files:[f]})) { await navigator.share({files:[f]}); toast('\u2713 Respaldo exportado con éxito'); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([data], {type:'text/plain'})); a.download = name;
   document.body.appendChild(a); a.click(); a.remove();
@@ -731,7 +759,49 @@ async function importText(s) {
 /* ---- planilla PDF ---- */
 let pdfInfo = {has:false, name:'', t:0, fresh:false}, pdfOpen = false, pdfDoc = null, pdfNote = false, lastShare = 0;
 let pvZoom = 1, pvPages = [], pvBusy = false, pvDirty = false, pvTimer = null, pvScroll = null, pvJs = null;
-function refreshPdf() { try { if (A) pdfInfo = Object.assign({has:false, name:'', t:0, fresh:false}, JSON.parse(A.pdfInfo())); } catch (e) {} }
+/* En la versión web el PDF se guarda en IndexedDB y sus datos (nombre, fecha) en localStorage. */
+const PDFMETA = 'asignaciones_pdfmeta_v1';
+const WebPdf = {
+  db() { return new Promise((res, rej) => { const q = indexedDB.open('asignaciones', 1); q.onupgradeneeded = () => q.result.createObjectStore('pdf'); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
+  async get() { const db = await this.db(); return new Promise((res, rej) => { const r = db.transaction('pdf').objectStore('pdf').get('planilla'); r.onsuccess = () => res(r.result || null); r.onerror = () => rej(r.error); }); },
+  async put(blob) { const db = await this.db(); return new Promise((res, rej) => { const tx = db.transaction('pdf', 'readwrite'); tx.objectStore('pdf').put(blob, 'planilla'); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error); }); },
+  async del() { const db = await this.db(); return new Promise((res, rej) => { const tx = db.transaction('pdf', 'readwrite'); tx.objectStore('pdf').delete('planilla'); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); }
+};
+function webPdfDelete() { try { localStorage.removeItem(PDFMETA); } catch (e) {} WebPdf.del().catch(() => {}); }
+function webPickPdf() {
+  let inp = document.getElementById('pdfin');
+  if (!inp) {
+    inp = document.createElement('input');
+    inp.type = 'file'; inp.id = 'pdfin'; inp.accept = 'application/pdf,.pdf'; inp.hidden = true;
+    document.body.appendChild(inp);
+    inp.addEventListener('change', async () => {
+      const f = inp.files && inp.files[0]; inp.value = ''; if (!f) return;
+      let ok = false;
+      try {
+        const head = new TextDecoder('latin1').decode(await f.slice(0, 5).arrayBuffer());
+        if (head === '%PDF-') {
+          await WebPdf.put(new Blob([f], {type:'application/pdf'}));
+          localStorage.setItem(PDFMETA, JSON.stringify({has:true, name:f.name || 'planilla.pdf', t:Date.now(), fresh:false}));
+          ok = true;
+        }
+      } catch (e) {}
+      window.onPdfSaved(ok);
+    });
+  }
+  inp.click();
+}
+async function pdfSource(t) {
+  if (A) return {url:new URL('/pdf/planilla.pdf?v=' + t, location.href).href};
+  const b = await WebPdf.get(); if (!b) throw new Error('nopdf');
+  return {data:new Uint8Array(await b.arrayBuffer())};
+}
+function refreshPdf() {
+  const base = {has:false, name:'', t:0, fresh:false};
+  try {
+    if (A) pdfInfo = Object.assign(base, JSON.parse(A.pdfInfo()));
+    else { let m = null; try { m = JSON.parse(localStorage.getItem(PDFMETA)); } catch (e) {} pdfInfo = Object.assign(base, m && m.has ? m : {}); }
+  } catch (e) {}
+}
 function loadPdfJs() {
   if (window.pdfjsLib) return Promise.resolve();
   if (pvJs) return pvJs;
@@ -765,8 +835,7 @@ async function openPdf() {
   b.addEventListener('scroll', () => { clearTimeout(pvScroll); pvScroll = setTimeout(pvEnsure, 120); }, {passive:true});
   try {
     await loadPdfJs();
-    const url = new URL('/pdf/planilla.pdf?v=' + pdfInfo.t, location.href).href;
-    const doc = await pdfjsLib.getDocument({url}).promise;
+    const doc = await pdfjsLib.getDocument(await pdfSource(pdfInfo.t)).promise;
     if (!pdfOpen) { try { doc.destroy(); } catch (e) {} return; }
     pdfDoc = doc;
     const w = $('#pvw'); w.innerHTML = '';
@@ -1002,7 +1071,6 @@ function clearIndex() {
   syncPdfDue();
 }
 async function ensureIndex() {
-  if (!A) return;
   if (!pdfInfo.has) { if (PI) { clearIndex(); render(); } return; }
   if (PI && PI.t === pdfInfo.t) return;
   if (idxBusy) return;
@@ -1010,7 +1078,7 @@ async function ensureIndex() {
   const t = pdfInfo.t; let ok = true;
   try {
     await loadPdfJs();
-    const doc = await pdfjsLib.getDocument({url:new URL('/pdf/planilla.pdf?v=' + t, location.href).href}).promise;
+    const doc = await pdfjsLib.getDocument(await pdfSource(t)).promise;
     const pages = [];
     for (let i = 1; i <= doc.numPages; i++) {
       const pg = await doc.getPage(i), vp = pg.getViewport({scale:1}), tc = await pg.getTextContent();
@@ -1239,7 +1307,7 @@ function resetApp() {
   L = L0(); locked = false; pl = null;
   tab = 'msg'; cfg = false; info = false; open = null; menu = null; lastMenu = null; fRole = null;
   draft = null; sent = false; nnv = ''; add.clear(); dlg = null; sheet = null; day = pickDay();
-  try { if (A) { A.clearBackup(); A.pdfDelete(); } } catch (e) {}
+  try { if (A) { A.clearBackup(); A.pdfDelete(); } else webPdfDelete(); } catch (e) {}
   pdfInfo = {has:false, name:'', t:0, fresh:false}; closePdf(); clearIndex();
   syncRem(); syncPdfDue(); applyTheme();
 }
@@ -1341,7 +1409,7 @@ document.addEventListener('click', e => {
     const k = dlg.k;
     if (k === 'busy') { draft[dlg.i].p = dlg.id; closeOv(); return; }
     if (k === 'rest') { try { A.driveRestore(dlg.id); toast('Restableciendo datos…'); } catch (e) {} closeOv(); return; }
-    if (k === 'pdf') { try { if (A) A.pdfDelete(); } catch (e) {} refreshPdf(); closePdf(); clearIndex(); toast('\u2713 PDF borrado'); closeOv(); return; }
+    if (k === 'pdf') { try { if (A) A.pdfDelete(); else webPdfDelete(); } catch (e) {} refreshPdf(); closePdf(); clearIndex(); toast('\u2713 PDF borrado'); closeOv(); return; }
     if (k === 'h') { S.hist = S.hist.filter(e => String(e.t) !== String(dlg.id)); draft = null; sent = false; save(); toast('\u2713 Mensaje borrado'); closeOv(); return; }
     if (k === 'xp') { S.people = []; S.last = {}; S.any = {}; open = null; fRole = null; draft = null; sent = false; save(); toast('\u2713 Personas borradas'); closeOv(); return; }
     if (k === 'xh') { S.hist = []; S.last = {}; S.any = {}; draft = null; sent = false; save(); toast('\u2713 Historial borrado'); closeOv(); return; }
@@ -1366,7 +1434,7 @@ document.addEventListener('click', e => {
   else if (a === 'pdf') { openPdf(); return; }
   else if (a === 'pvclose') { closePdf(); return; }
   else if (a === 'pvz') { const bb = $('#pvb'); if (bb) pvSetZoom(pvZoom * (v === '+' ? 1.4 : 1 / 1.4), bb.clientWidth / 2, bb.clientHeight / 2); return; }
-  else if (a === 'pdfup') { if (A) A.pickPdf(); else toast('Disponible solo en la app para Android'); return; }
+  else if (a === 'pdfup') { if (A) A.pickPdf(); else webPickPdf(); return; }
   else if (a === 'pdfdel') dlg = {k:'pdf'};
   else if (a === 'pavoid') { S.pdfAvoid = !S.pdfAvoid; save(); }
   else if (a === 'pdfsee') { sheet = {txt:pdfReport(), ttl:'Lo que leyó la app'}; }
@@ -1419,6 +1487,12 @@ if (locked && L.mode === 'device') promptDevice();
 if (pdfInfo.fresh) window.onPdfShared(true);
 checkCloud();
 ensureIndex(); syncPdfDue();
+if (WEB) {
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+  }
+}
 </script>
 </body>
 </html>
