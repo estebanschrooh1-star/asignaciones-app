@@ -1,0 +1,20 @@
+{
+  "name": "asignaciones",
+  "version": "2.8.3",
+  "private": true,
+  "description": "Asignaciones - app web (PWA) y Android (Capacitor)",
+  "scripts": {
+    "prepare:web": "node scripts/prepare-web.js"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/filesystem": "^6.0.0",
+    "@capacitor/local-notifications": "^6.1.0",
+    "@capacitor/share": "^6.0.0",
+    "pdfjs-dist": "3.11.174"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0"
+  }
+}
