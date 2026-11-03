@@ -1,4 +1,4 @@
-# Asignaciones v1.8.0
+# Asignaciones v1.8.2
 
 Un solo código para dos apps: **Android** (APK) e **iPhone/iPad** (PWA). La pantalla es la misma
 (`app/src/main/assets/index.html`); GitHub Actions genera las dos versiones en cada push.
